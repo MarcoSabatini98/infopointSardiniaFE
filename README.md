@@ -101,10 +101,6 @@ src/app/
 
 ---
 
-## Git Flow
-
-`feat/xxx` → push → PR su **`develop`** → (dopo verifica) merge su **`main`**.
-
 ## Convenzioni
 
 - Componenti **standalone**, **signals** per lo stato, **inject()** per i servizi.

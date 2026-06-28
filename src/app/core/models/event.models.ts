@@ -28,6 +28,22 @@ export interface EventItem {
   creator?: { uuid: string; name: string } | null;
 }
 
+// Evento mappabile unificato (DB + esterni geocodati) servito dal BE per la
+// mappa e per l'aggregazione provinciale.
+export interface MapEvent {
+  title: string;
+  lat: number;
+  lng: number;
+  province_code: ProvinceCode;
+  comune: string | null;
+  date: string | null;
+  category: string;
+  status: string;
+  source: string;
+  link?: string | null;
+  uuid?: string;
+}
+
 // Evento dalla fonte esterna ufficiale (SardegnaTurismo).
 export interface ExternalEvent {
   title: string;

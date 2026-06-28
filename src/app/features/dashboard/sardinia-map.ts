@@ -20,8 +20,7 @@ import {
   VesselsResponse,
   WeatherProvince,
 } from '../../core/models/feeds.models';
-import { EventItem } from '../../core/models/event.models';
-import { Paginated } from '../../core/models/api.models';
+import { MapEvent } from '../../core/models/event.models';
 import { GeoLayer, LAYERS, weatherInfo, windDir } from './map-layers';
 
 const SARDINIA_CENTER: L.LatLngTuple = [40.05, 9.05];
@@ -70,8 +69,9 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
   private readonly feeds = inject(FeedsService);
   private readonly mapService = inject(MapService);
 
-  // Layer attivo controllato dal selettore esterno (dashboard).
+  // Layer attivo + provincia selezionata, controllati dal dashboard.
   readonly layer = input<GeoLayer>('weather');
+  readonly selected = input<ProvinceCode | null>(null);
   readonly provinceSelected = output<ProvinceCode>();
   readonly layerStats = output<{ count: number | null; loading: boolean }>();
 
@@ -80,7 +80,6 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
   private provinceLayer = L.layerGroup();
   private dataLayer = L.layerGroup();
   private geoLayer?: L.GeoJSON;
-  private selectedCode: ProvinceCode | null = null;
   private ready = false;
 
   constructor() {
@@ -88,6 +87,12 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
     effect(() => {
       const l = this.layer();
       if (this.ready) this.loadLayer(l);
+    });
+    // Ristila i poligoni quando cambia la provincia selezionata (dal toggle o
+    // dal click sulla mappa).
+    effect(() => {
+      this.selected();
+      if (this.ready) this.geoLayer?.setStyle((f) => this.provinceStyle(f?.properties?.['code']));
     });
   }
 
@@ -117,12 +122,12 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
           const code = feature.properties?.['code'] as ProvinceCode;
           const name = feature.properties?.['name'] as string;
           lyr.bindTooltip(name, { sticky: true });
-          lyr.on('click', () => this.selectProvince(code));
+          lyr.on('click', () => this.provinceSelected.emit(code));
           lyr.on('mouseover', () => {
-            if (code !== this.selectedCode) (lyr as L.Path).setStyle({ fillOpacity: 0.15 });
+            if (code !== this.selected()) (lyr as L.Path).setStyle({ fillOpacity: 0.15 });
           });
           lyr.on('mouseout', () => {
-            if (code !== this.selectedCode) (lyr as L.Path).setStyle(this.provinceStyle(code));
+            if (code !== this.selected()) (lyr as L.Path).setStyle(this.provinceStyle(code));
           });
         },
       }).addTo(this.provinceLayer);
@@ -132,19 +137,13 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
   }
 
   private provinceStyle(code?: string): L.PathOptions {
-    const selected = code === this.selectedCode;
+    const isSel = code === this.selected();
     return {
-      color: selected ? '#c1502e' : '#0b6e75',
-      weight: selected ? 2.5 : 1,
-      fillColor: selected ? '#c1502e' : '#0b6e75',
-      fillOpacity: selected ? 0.12 : 0.04,
+      color: isSel ? '#c1502e' : '#0b6e75',
+      weight: isSel ? 2.5 : 1,
+      fillColor: isSel ? '#c1502e' : '#0b6e75',
+      fillOpacity: isSel ? 0.14 : 0.04,
     };
-  }
-
-  private selectProvince(code: ProvinceCode): void {
-    this.selectedCode = code;
-    this.provinceSelected.emit(code);
-    this.geoLayer?.setStyle((f) => this.provinceStyle(f?.properties?.['code']));
   }
 
   // ── Layer dati: marker a icona per tipo ─────────────────────
@@ -214,20 +213,17 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
         });
         break;
       case 'events':
-        this.mapService
-          .layer<{ count: number; events: EventItem[] } | Paginated<EventItem>>('events')
-          .subscribe((d) => {
-            const items = 'events' in d ? d.events : d.data;
-            items.forEach((e) => {
-              if (e.lat != null && e.lng != null)
-                this.marker(Number(e.lat), Number(e.lng), def, [
-                  [e.title, true],
-                  [`${e.category}${e.comune ? ' · ' + e.comune : ''}`],
-                  [e.start_date ? `Dal ${e.start_date}` : ''],
-                ]);
-            });
-            done(items.length);
-          });
+        this.mapService.layer<{ count: number; events: MapEvent[] }>('events').subscribe((d) => {
+          (d.events ?? []).forEach((e) =>
+            this.marker(e.lat, e.lng, def, [
+              [e.title, true],
+              [`${e.category}${e.comune ? ' · ' + e.comune : ''}`],
+              [e.date ? `${e.date}` : ''],
+              [e.source ? `Fonte: ${e.source}` : ''],
+            ]),
+          );
+          done(d.events?.length ?? 0);
+        });
         break;
     }
   }

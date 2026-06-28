@@ -20,21 +20,21 @@ describe('MapService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('provinces srotola data', () => {
-    let res: unknown;
-    service.provinces().subscribe((r) => (res = r));
-    httpMock
-      .expectOne(`${base}/provinces`)
-      .flush({ status: 'success', success: true, data: [{ code: 'CA' }] });
-    expect(res).toEqual([{ code: 'CA' }]);
-  });
-
   it('geojson legge la risposta raw (non JSend)', () => {
     let res: unknown;
     service.geojson().subscribe((r) => (res = r));
     const fc = { type: 'FeatureCollection', features: [] };
     httpMock.expectOne(`${base}/provinces/geojson`).flush(fc);
     expect(res).toEqual(fc);
+  });
+
+  it('provinceInfo srotola i dati aggregati', () => {
+    let res: { province?: unknown } | undefined;
+    service.provinceInfo('CA').subscribe((r) => (res = r));
+    httpMock
+      .expectOne(`${base}/provinces/CA`)
+      .flush({ status: 'success', success: true, data: { province: { code: 'CA' } } });
+    expect(res?.province).toEqual({ code: 'CA' });
   });
 
   it('layer compone l URL del layer richiesto', () => {
