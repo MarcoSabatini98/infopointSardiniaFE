@@ -1,0 +1,129 @@
+<section class="container">
+  <header class="head">
+    <h1>Gestione eventi</h1>
+    <button class="btn btn-primary" type="button" (click)="create()">+ Nuovo evento</button>
+  </header>
+
+  <!-- Form create/edit -->
+  @if (form(); as f) {
+    <form class="card form" (ngSubmit)="save()">
+      <h2>{{ f.uuid ? 'Modifica evento' : 'Nuovo evento' }}</h2>
+
+      <div class="row">
+        <label>
+          <span>Tipo</span>
+          <select class="select" name="type" [(ngModel)]="f.type" (ngModelChange)="onTypeChange()">
+            <option value="CULTURALE">Culturale</option>
+            <option value="NATURALE">Naturale</option>
+          </select>
+        </label>
+        <label>
+          <span>Categoria</span>
+          <select class="select" name="category" [(ngModel)]="f.category">
+            @for (c of categories(); track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Stato</span>
+          <select class="select" name="status" [(ngModel)]="f.status">
+            <option value="bozza">Bozza</option>
+            <option value="pubblicato">Pubblicato</option>
+            <option value="annullato">Annullato</option>
+          </select>
+        </label>
+      </div>
+
+      <label>
+        <span>Titolo</span>
+        <input class="input" name="title" [(ngModel)]="f.title" required />
+      </label>
+
+      <label>
+        <span>Descrizione</span>
+        <textarea class="textarea" name="description" rows="3" [(ngModel)]="f.description"></textarea>
+      </label>
+
+      <div class="row">
+        <label>
+          <span>Provincia</span>
+          <select class="select" name="province" [(ngModel)]="f.province_code">
+            @for (p of provinces; track p) {
+              <option [value]="p">{{ p }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Comune</span>
+          <input class="input" name="comune" [(ngModel)]="f.comune" />
+        </label>
+      </div>
+
+      <div class="row">
+        <label>
+          <span>Data inizio</span>
+          <input class="input" type="date" name="start" [(ngModel)]="f.start_date" required />
+        </label>
+        <label>
+          <span>Data fine</span>
+          <input class="input" type="date" name="end" [(ngModel)]="f.end_date" />
+        </label>
+        <label class="check">
+          <input type="checkbox" name="free" [(ngModel)]="f.is_free" />
+          <span>Ingresso gratuito</span>
+        </label>
+      </div>
+
+      @if (error()) {
+        <p class="err">{{ error() }}</p>
+      }
+
+      <div class="form-actions">
+        <button class="btn btn-ghost" type="button" (click)="cancel()">Annulla</button>
+        <button class="btn btn-primary" type="submit" [disabled]="saving()">
+          {{ saving() ? 'Salvataggio…' : 'Salva' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  <!-- Tabella eventi -->
+  @if (loading()) {
+    <p class="muted">Caricamento…</p>
+  } @else if (items().length === 0) {
+    <p class="muted">Nessun evento. Creane uno con "Nuovo evento".</p>
+  } @else {
+    <div class="card table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Titolo</th>
+            <th>Tipo</th>
+            <th>Provincia</th>
+            <th>Inizio</th>
+            <th>Stato</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of items(); track e.uuid) {
+            <tr>
+              <td>{{ e.title }}</td>
+              <td>{{ e.type === 'NATURALE' ? 'Naturale' : 'Culturale' }} · {{ e.category }}</td>
+              <td>{{ e.province_code }}</td>
+              <td>{{ e.start_date | date: 'd MMM yyyy' }}</td>
+              <td><span class="status" [attr.data-s]="e.status">{{ e.status }}</span></td>
+              <td class="actions">
+                <button class="btn btn-ghost sm" type="button" (click)="edit(e)">Modifica</button>
+                <button class="btn btn-ghost sm danger" type="button" (click)="remove(e)">
+                  Elimina
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

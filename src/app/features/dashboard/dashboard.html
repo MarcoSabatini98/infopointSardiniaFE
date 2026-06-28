@@ -1,0 +1,203 @@
+<section class="dash">
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="title">
+      <h1>Monitoraggio Sardegna</h1>
+      <span class="live"><span class="dot"></span> in tempo reale</span>
+    </div>
+    <p class="muted sub">
+      Meteo, incendi, allagamenti, traffico, voli, navi ed eventi della regione.
+    </p>
+  </div>
+
+  <!-- Selettore layer (fuori dalla mappa) -->
+  <div class="layerbar">
+    <div class="chips" role="tablist" aria-label="Layer mappa">
+      @for (l of layers; track l.id) {
+        <button
+          class="chip"
+          role="tab"
+          [class.on]="activeLayer() === l.id"
+          [attr.aria-selected]="activeLayer() === l.id"
+          [style.--c]="l.color"
+          (click)="setLayer(l.id)"
+        >
+          <span class="ic" aria-hidden="true">{{ l.icon }}</span>{{ l.label }}
+        </button>
+      }
+    </div>
+    <span class="layer-stat muted">
+      @if (layerLoading()) {
+        Caricamento…
+      } @else if (layerCount() !== null) {
+        {{ layerCount() }} sulla mappa
+      }
+    </span>
+  </div>
+
+  <div class="grid">
+    <!-- Mappa -->
+    <div class="map-col card">
+      <app-sardinia-map
+        [layer]="activeLayer()"
+        (provinceSelected)="onProvince($event)"
+        (layerStats)="onLayerStats($event)"
+      />
+    </div>
+
+    <!-- Rail dati -->
+    <aside class="rail">
+      <!-- Toggle Globale / Provincia -->
+      <div class="seg" role="tablist" aria-label="Vista pannello">
+        <button
+          class="seg-btn"
+          role="tab"
+          [class.on]="view() === 'global'"
+          [attr.aria-selected]="view() === 'global'"
+          (click)="setView('global')"
+        >
+          Globale
+        </button>
+        <button
+          class="seg-btn"
+          role="tab"
+          [class.on]="view() === 'province'"
+          [attr.aria-selected]="view() === 'province'"
+          [disabled]="!province()"
+          (click)="setView('province')"
+        >
+          {{ province()?.province?.name || 'Provincia' }}
+        </button>
+      </div>
+
+      <!-- ── GLOBALE ── -->
+      @if (view() === 'global') {
+        <!-- Allerte -->
+        <section class="block">
+          <div class="block-head">
+            <h2>Allerte</h2>
+            <span class="badge" [class.hot]="alerts().length > 0">{{ alerts().length }}</span>
+          </div>
+          @if (alertsLoading()) {
+            <div class="sk-list">
+              <div class="skeleton sk-row"></div>
+              <div class="skeleton sk-row"></div>
+            </div>
+          } @else if (alerts().length === 0) {
+            <p class="muted sm empty">Nessuna allerta attiva in regione.</p>
+          } @else {
+            <ul class="feed">
+              @for (a of alerts().slice(0, 4); track a.link) {
+                <li>
+                  <a [href]="a.link" target="_blank" rel="noopener">{{ a.title }}</a>
+                  <span class="when muted">{{ a.published_at | date: 'd MMM, HH:mm' }}</span>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <!-- News -->
+        <section class="block">
+          <div class="block-head"><h2>Ultime notizie</h2></div>
+          @if (newsLoading()) {
+            <div class="sk-list">
+              <div class="skeleton sk-feat"></div>
+              <div class="skeleton sk-row"></div>
+              <div class="skeleton sk-row"></div>
+            </div>
+          } @else if (news().length === 0) {
+            <p class="muted sm empty">Nessuna notizia disponibile.</p>
+          } @else {
+            @if (featured(); as f) {
+              <a class="feat" [href]="f.link" target="_blank" rel="noopener">
+                <span class="src-chip">{{ f.source }}</span>
+                <span class="feat-title">{{ f.title }}</span>
+                <span class="when muted">{{ f.published_at | date: 'd MMM, HH:mm' }}</span>
+              </a>
+            }
+            <ul class="news">
+              @for (n of restNews(); track n.link) {
+                <li>
+                  <span class="src-dot" [style.background]="sourceColor(n.source)"></span>
+                  <div class="news-body">
+                    <a [href]="n.link" target="_blank" rel="noopener">{{ n.title }}</a>
+                    <span class="when muted">{{ n.source }} · {{ n.published_at | date: 'd MMM' }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+
+      <!-- ── PROVINCIA ── -->
+      @if (view() === 'province') {
+        @if (loadingProvince()) {
+          <div class="sk-list">
+            <div class="skeleton sk-stats"></div>
+            <div class="skeleton sk-row"></div>
+            <div class="skeleton sk-row"></div>
+          </div>
+        } @else if (province(); as p) {
+          <section class="block">
+            <div class="block-head">
+              <h2>{{ p.province.name }}</h2>
+              <span class="muted sm">{{ p.province.capoluogo }}</span>
+            </div>
+            <div class="stats">
+              <div class="stat">
+                <span class="big">{{ provinceTemp() !== null ? provinceTemp() + '°' : '–' }}</span>
+                <span class="lbl">meteo</span>
+              </div>
+              <div class="stat" [class.alarm]="p.fires.count > 0">
+                <span class="big">{{ p.fires.count }}</span>
+                <span class="lbl">incendi</span>
+              </div>
+              <div class="stat" [class.alarm]="p.alerts.count > 0">
+                <span class="big">{{ p.alerts.count }}</span>
+                <span class="lbl">allerte</span>
+              </div>
+              <div class="stat">
+                <span class="big">{{ p.events.count }}</span>
+                <span class="lbl">eventi</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="block">
+            <div class="block-head"><h2>Eventi in programma</h2></div>
+            @if (provinceEvents().length === 0) {
+              <p class="muted sm empty">Nessun evento pubblicato per questa provincia.</p>
+            } @else {
+              <ul class="feed">
+                @for (e of provinceEvents(); track e.uuid) {
+                  <li>
+                    <span class="ev-line">{{ e.title }}</span>
+                    <span class="when muted">{{ e.comune }} · {{ e.start_date | date: 'd MMM' }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          @if (provinceAlerts().length > 0) {
+            <section class="block">
+              <div class="block-head"><h2>Allerte locali</h2></div>
+              <ul class="feed">
+                @for (a of provinceAlerts().slice(0, 3); track a.link) {
+                  <li>
+                    <a [href]="a.link" target="_blank" rel="noopener">{{ a.title }}</a>
+                    <span class="when muted">{{ a.published_at | date: 'd MMM, HH:mm' }}</span>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        } @else {
+          <p class="muted sm empty">Clicca un'area provinciale sulla mappa.</p>
+        }
+      }
+    </aside>
+  </div>
+</section>
