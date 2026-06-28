@@ -8,6 +8,36 @@ export const routes: Routes = [
     title: 'Dashboard — infopoint Sardegna',
   },
   {
+    path: 'meteo',
+    loadComponent: () => import('./features/weather/weather-page').then((m) => m.WeatherPage),
+    title: 'Meteo — infopoint Sardegna',
+  },
+  {
+    path: 'incendi',
+    loadComponent: () => import('./features/fires/fires-page').then((m) => m.FiresPage),
+    title: 'Incendi — infopoint Sardegna',
+  },
+  {
+    path: 'traffico',
+    loadComponent: () => import('./features/traffic/traffic-page').then((m) => m.TrafficPage),
+    title: 'Traffico — infopoint Sardegna',
+  },
+  {
+    path: 'voli',
+    loadComponent: () => import('./features/flights/flights-page').then((m) => m.FlightsPage),
+    title: 'Voli — infopoint Sardegna',
+  },
+  {
+    path: 'navi',
+    loadComponent: () => import('./features/vessels/vessels-page').then((m) => m.VesselsPage),
+    title: 'Navi — infopoint Sardegna',
+  },
+  {
+    path: 'news',
+    loadComponent: () => import('./features/news/news-page').then((m) => m.NewsPage),
+    title: 'News — infopoint Sardegna',
+  },
+  {
     path: 'eventi',
     loadComponent: () => import('./features/events/events-list').then((m) => m.EventsList),
     title: 'Eventi — infopoint Sardegna',

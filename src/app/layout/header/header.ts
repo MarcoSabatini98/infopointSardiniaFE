@@ -17,6 +17,12 @@ import { AuthService } from '../../core/services/auth.service';
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           Dashboard
         </a>
+        <a routerLink="/meteo" routerLinkActive="active">Meteo</a>
+        <a routerLink="/incendi" routerLinkActive="active">Incendi</a>
+        <a routerLink="/traffico" routerLinkActive="active">Traffico</a>
+        <a routerLink="/voli" routerLinkActive="active">Voli</a>
+        <a routerLink="/navi" routerLinkActive="active">Navi</a>
+        <a routerLink="/news" routerLinkActive="active">News</a>
         <a routerLink="/eventi" routerLinkActive="active">Eventi</a>
         @if (session.isAuthenticated()) {
           <a routerLink="/gestione" routerLinkActive="active">Gestione</a>
@@ -81,8 +87,16 @@ import { AuthService } from '../../core/services/auth.service';
       }
       .nav {
         display: flex;
-        gap: 0.25rem;
+        gap: 0.15rem;
         margin-left: 0.5rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .nav::-webkit-scrollbar {
+        display: none;
+      }
+      .nav a {
+        white-space: nowrap;
       }
       .nav a {
         color: var(--ink-soft);

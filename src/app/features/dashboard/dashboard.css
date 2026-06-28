@@ -125,39 +125,40 @@
   padding-right: 2px;
 }
 
-/* Segmented toggle */
-.seg {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.2rem;
-  padding: 0.2rem;
+/* Toggle province (Globale + 5 province) */
+.provtabs {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.25rem;
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: 999px;
 }
-.seg-btn {
+.ptab {
+  flex: 1;
   font: inherit;
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--text-sm);
-  padding: 0.4rem 0.5rem;
+  padding: 0.4rem 0.4rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--ink-soft);
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: background 0.15s var(--ease);
+  transition:
+    background 0.15s var(--ease),
+    color 0.15s var(--ease);
 }
-.seg-btn.on {
-  background: var(--surface);
+.ptab:first-child {
+  flex: 1.6;
+}
+.ptab:hover {
   color: var(--ink);
-  box-shadow: var(--shadow-sm);
 }
-.seg-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.ptab.on {
+  background: var(--sea);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
 }
 
 /* Block (flat, bordered) */

@@ -4,6 +4,7 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../models/api.models';
 import { MapLayer, Province, ProvinceCode } from '../models/province.models';
+import { MapEvent } from '../models/event.models';
 
 // Risposta aggregata del click-provincia (BE /map/provinces/:code).
 export interface ProvinceInfo {
@@ -11,19 +12,13 @@ export interface ProvinceInfo {
   weather: unknown;
   fires: { count: number; items: unknown[] };
   alerts: { count: number; items: unknown[] };
-  events: { count: number; items: unknown[] };
+  events: { count: number; items: MapEvent[] };
 }
 
 @Injectable({ providedIn: 'root' })
 export class MapService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiBase}/map`;
-
-  provinces(): Observable<Province[]> {
-    return this.http
-      .get<ApiResponse<Province[]>>(`${this.base}/provinces`)
-      .pipe(map((r) => r.data));
-  }
 
   // GeoJSON servito raw (non JSend) dal BE.
   geojson(): Observable<GeoJSON.FeatureCollection> {

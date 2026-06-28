@@ -40,49 +40,47 @@
     <div class="map-col card">
       <app-sardinia-map
         [layer]="activeLayer()"
-        (provinceSelected)="onProvince($event)"
+        [selected]="activeProvince()"
+        (provinceSelected)="selectProvince($event)"
         (layerStats)="onLayerStats($event)"
       />
     </div>
 
     <!-- Rail dati -->
     <aside class="rail">
-      <!-- Toggle Globale / Provincia -->
-      <div class="seg" role="tablist" aria-label="Vista pannello">
+      <!-- Toggle province reale -->
+      <div class="provtabs" role="tablist" aria-label="Provincia">
         <button
-          class="seg-btn"
+          class="ptab"
           role="tab"
-          [class.on]="view() === 'global'"
-          [attr.aria-selected]="view() === 'global'"
-          (click)="setView('global')"
+          [class.on]="!activeProvince()"
+          [attr.aria-selected]="!activeProvince()"
+          (click)="clearProvince()"
         >
           Globale
         </button>
-        <button
-          class="seg-btn"
-          role="tab"
-          [class.on]="view() === 'province'"
-          [attr.aria-selected]="view() === 'province'"
-          [disabled]="!province()"
-          (click)="setView('province')"
-        >
-          {{ province()?.province?.name || 'Provincia' }}
-        </button>
+        @for (p of provincesList; track p.code) {
+          <button
+            class="ptab"
+            role="tab"
+            [class.on]="activeProvince() === p.code"
+            [attr.aria-selected]="activeProvince() === p.code"
+            (click)="selectProvince(p.code)"
+          >
+            {{ p.code }}
+          </button>
+        }
       </div>
 
       <!-- ── GLOBALE ── -->
-      @if (view() === 'global') {
-        <!-- Allerte -->
+      @if (!activeProvince()) {
         <section class="block">
           <div class="block-head">
             <h2>Allerte</h2>
             <span class="badge" [class.hot]="alerts().length > 0">{{ alerts().length }}</span>
           </div>
           @if (alertsLoading()) {
-            <div class="sk-list">
-              <div class="skeleton sk-row"></div>
-              <div class="skeleton sk-row"></div>
-            </div>
+            <div class="sk-list"><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div></div>
           } @else if (alerts().length === 0) {
             <p class="muted sm empty">Nessuna allerta attiva in regione.</p>
           } @else {
@@ -97,15 +95,10 @@
           }
         </section>
 
-        <!-- News -->
         <section class="block">
           <div class="block-head"><h2>Ultime notizie</h2></div>
           @if (newsLoading()) {
-            <div class="sk-list">
-              <div class="skeleton sk-feat"></div>
-              <div class="skeleton sk-row"></div>
-              <div class="skeleton sk-row"></div>
-            </div>
+            <div class="sk-list"><div class="skeleton sk-feat"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div></div>
           } @else if (news().length === 0) {
             <p class="muted sm empty">Nessuna notizia disponibile.</p>
           } @else {
@@ -132,13 +125,9 @@
       }
 
       <!-- ── PROVINCIA ── -->
-      @if (view() === 'province') {
+      @if (activeProvince()) {
         @if (loadingProvince()) {
-          <div class="sk-list">
-            <div class="skeleton sk-stats"></div>
-            <div class="skeleton sk-row"></div>
-            <div class="skeleton sk-row"></div>
-          </div>
+          <div class="sk-list"><div class="skeleton sk-stats"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div></div>
         } @else if (province(); as p) {
           <section class="block">
             <div class="block-head">
@@ -151,16 +140,13 @@
                 <span class="lbl">meteo</span>
               </div>
               <div class="stat" [class.alarm]="p.fires.count > 0">
-                <span class="big">{{ p.fires.count }}</span>
-                <span class="lbl">incendi</span>
+                <span class="big">{{ p.fires.count }}</span><span class="lbl">incendi</span>
               </div>
               <div class="stat" [class.alarm]="p.alerts.count > 0">
-                <span class="big">{{ p.alerts.count }}</span>
-                <span class="lbl">allerte</span>
+                <span class="big">{{ p.alerts.count }}</span><span class="lbl">allerte</span>
               </div>
               <div class="stat">
-                <span class="big">{{ p.events.count }}</span>
-                <span class="lbl">eventi</span>
+                <span class="big">{{ p.events.count }}</span><span class="lbl">eventi</span>
               </div>
             </div>
           </section>
@@ -168,34 +154,46 @@
           <section class="block">
             <div class="block-head"><h2>Eventi in programma</h2></div>
             @if (provinceEvents().length === 0) {
-              <p class="muted sm empty">Nessun evento pubblicato per questa provincia.</p>
+              <p class="muted sm empty">Nessun evento per questa provincia.</p>
             } @else {
               <ul class="feed">
-                @for (e of provinceEvents(); track e.uuid) {
+                @for (e of provinceEvents(); track e.title + (e.comune || '')) {
                   <li>
-                    <span class="ev-line">{{ e.title }}</span>
-                    <span class="when muted">{{ e.comune }} · {{ e.start_date | date: 'd MMM' }}</span>
+                    @if (e.link) {
+                      <a [href]="e.link" target="_blank" rel="noopener">{{ e.title }}</a>
+                    } @else {
+                      <span class="ev-line">{{ e.title }}</span>
+                    }
+                    <span class="when muted">
+                      {{ e.comune }}@if (e.date) { · {{ e.date }} }
+                      @if (e.source === 'Gestione') { · <em>interno</em> }
+                    </span>
                   </li>
                 }
               </ul>
             }
           </section>
 
-          @if (provinceAlerts().length > 0) {
-            <section class="block">
-              <div class="block-head"><h2>Allerte locali</h2></div>
-              <ul class="feed">
-                @for (a of provinceAlerts().slice(0, 3); track a.link) {
+          <section class="block">
+            <div class="block-head"><h2>Notizie · {{ p.province.name }}</h2></div>
+            @if (provinceNews().length === 0) {
+              <p class="muted sm empty">Nessuna notizia recente che cita la provincia.</p>
+            } @else {
+              <ul class="news">
+                @for (n of provinceNews(); track n.link) {
                   <li>
-                    <a [href]="a.link" target="_blank" rel="noopener">{{ a.title }}</a>
-                    <span class="when muted">{{ a.published_at | date: 'd MMM, HH:mm' }}</span>
+                    <span class="src-dot" [style.background]="sourceColor(n.source)"></span>
+                    <div class="news-body">
+                      <a [href]="n.link" target="_blank" rel="noopener">{{ n.title }}</a>
+                      <span class="when muted">{{ n.source }} · {{ n.published_at | date: 'd MMM' }}</span>
+                    </div>
                   </li>
                 }
               </ul>
-            </section>
-          }
+            }
+          </section>
         } @else {
-          <p class="muted sm empty">Clicca un'area provinciale sulla mappa.</p>
+          <p class="muted sm empty">Dati provincia non disponibili.</p>
         }
       }
     </aside>

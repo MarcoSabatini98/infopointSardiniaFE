@@ -3,12 +3,10 @@ import { DatePipe } from '@angular/common';
 import { SardiniaMap } from './sardinia-map';
 import { FeedsService } from '../../core/services/feeds.service';
 import { MapService, ProvinceInfo } from '../../core/services/map.service';
-import { ProvinceCode } from '../../core/models/province.models';
+import { ProvinceCode, PROVINCES } from '../../core/models/province.models';
 import { Alert, NewsItem, WeatherProvince } from '../../core/models/feeds.models';
-import { EventItem } from '../../core/models/event.models';
+import { MapEvent } from '../../core/models/event.models';
 import { GeoLayer, LAYERS } from './map-layers';
-
-type PanelView = 'global' | 'province';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,26 +18,42 @@ export class Dashboard {
   private readonly feeds = inject(FeedsService);
   private readonly mapService = inject(MapService);
 
+  protected readonly provincesList = PROVINCES;
+
   protected readonly news = signal<NewsItem[]>([]);
   protected readonly alerts = signal<Alert[]>([]);
   protected readonly newsLoading = signal(true);
   protected readonly alertsLoading = signal(true);
+
+  // Provincia attiva (null = vista Globale). Pilota mappa + pannello.
+  protected readonly activeProvince = signal<ProvinceCode | null>(null);
   protected readonly province = signal<ProvinceInfo | null>(null);
   protected readonly loadingProvince = signal(false);
-  protected readonly view = signal<PanelView>('global');
 
-  // Selettore layer mappa (fuori dalla mappa).
+  // Selettore layer mappa.
   protected readonly layers = LAYERS;
   protected readonly activeLayer = signal<GeoLayer>('weather');
   protected readonly layerCount = signal<number | null>(null);
   protected readonly layerLoading = signal(false);
 
-  // Prima notizia "in evidenza", il resto in lista.
   protected readonly featured = computed(() => this.news()[0] ?? null);
   protected readonly restNews = computed(() => this.news().slice(1));
 
+  // News che citano la provincia attiva (filtro testuale su titolo+sommario).
+  protected readonly provinceNews = computed(() => {
+    const code = this.activeProvince();
+    if (!code) return [];
+    const p = PROVINCES.find((x) => x.code === code);
+    if (!p) return [];
+    const terms = [p.name, p.capoluogo].map((t) => t.toLowerCase());
+    return this.news().filter((n) => {
+      const hay = `${n.title ?? ''} ${n.summary ?? ''}`.toLowerCase();
+      return terms.some((t) => hay.includes(t));
+    });
+  });
+
   constructor() {
-    this.feeds.news(14).subscribe({
+    this.feeds.news(20).subscribe({
       next: (d) => this.news.set(d.items),
       complete: () => this.newsLoading.set(false),
     });
@@ -49,9 +63,15 @@ export class Dashboard {
     });
   }
 
-  onProvince(code: ProvinceCode): void {
+  // Toggle provincia: stessa provincia → deseleziona (torna Globale).
+  selectProvince(code: ProvinceCode): void {
+    if (this.activeProvince() === code) {
+      this.clearProvince();
+      return;
+    }
+    this.activeProvince.set(code);
     this.loadingProvince.set(true);
-    this.view.set('province');
+    this.province.set(null);
     this.mapService.provinceInfo(code).subscribe({
       next: (info) => {
         this.province.set(info);
@@ -61,8 +81,9 @@ export class Dashboard {
     });
   }
 
-  setView(v: PanelView): void {
-    this.view.set(v);
+  clearProvince(): void {
+    this.activeProvince.set(null);
+    this.province.set(null);
   }
 
   setLayer(id: GeoLayer): void {
@@ -79,15 +100,14 @@ export class Dashboard {
     return w?.current?.temperature_2m ?? null;
   }
 
-  protected provinceEvents(): EventItem[] {
-    return (this.province()?.events.items ?? []) as EventItem[];
+  protected provinceEvents(): MapEvent[] {
+    return this.province()?.events.items ?? [];
   }
 
   protected provinceAlerts(): Alert[] {
     return (this.province()?.alerts.items ?? []) as Alert[];
   }
 
-  // Colore del pallino-sorgente per testata.
   protected sourceColor(source: string): string {
     if (source === 'ANSA Sardegna') return 'var(--sea)';
     if (source === 'SkyTG24') return 'var(--flights)';
