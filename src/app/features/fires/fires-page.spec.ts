@@ -5,13 +5,25 @@ import { FiresPage } from './fires-page';
 import { FeedsService } from '../../core/services/feeds.service';
 
 describe('FiresPage', () => {
-  it('mostra la testata incendi e lo stato vuoto', async () => {
+  it('mostra il pannello e lo stato calmo senza incendi', async () => {
     await render(FiresPage, {
       providers: [
-        { provide: FeedsService, useValue: { fires: () => of({ available: true, count: 0, fires: [] }) } },
+        {
+          provide: FeedsService,
+          useValue: {
+            fires: () =>
+              of({
+                available: true,
+                source: 'NASA FIRMS',
+                count: 0,
+                fires: [],
+                stats: { by_province: {}, by_severity: {}, max_frp: null },
+              }),
+          },
+        },
       ],
     });
-    expect(screen.getByRole('heading', { name: /incendi attivi/i })).toBeTruthy();
-    expect(screen.getByText(/nessun incendio/i)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /guardia-fuochi/i })).toBeTruthy();
+    expect(screen.getByText(/nessun incendio attivo/i)).toBeTruthy();
   });
 });

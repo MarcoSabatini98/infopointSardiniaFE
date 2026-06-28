@@ -27,6 +27,14 @@ export class FeedsService {
       .pipe(map((r) => r.data));
   }
 
+  // Ricerca meteo per città (geocoding lato BE) → meteo completo.
+  searchWeather(q: string): Observable<WeatherProvince> {
+    const params = new HttpParams().set('q', q);
+    return this.http
+      .get<ApiResponse<WeatherProvince>>(`${this.base}/weather/search`, { params })
+      .pipe(map((r) => r.data));
+  }
+
   fires(): Observable<FiresResponse> {
     return this.http.get<ApiResponse<FiresResponse>>(`${this.base}/fires`).pipe(map((r) => r.data));
   }

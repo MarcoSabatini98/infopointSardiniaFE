@@ -1,90 +1,75 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FeedsService } from '../../core/services/feeds.service';
-import { Fire } from '../../core/models/feeds.models';
+import { Fire, FiresResponse } from '../../core/models/feeds.models';
+import { PROVINCES, ProvinceCode } from '../../core/models/province.models';
+
+const SEVERITY_ORDER = ['estrema', 'alta', 'media', 'bassa', 'n/d'];
 
 @Component({
   selector: 'app-fires-page',
-  template: `
-    <section class="container">
-      <header class="ph">
-        <h1>🔥 Incendi attivi</h1>
-        <p class="muted">Hotspot satellitari rilevati nelle ultime ore (EFFIS / NASA FIRMS).</p>
-      </header>
-
-      @if (loading()) {
-        <p class="muted">Caricamento…</p>
-      } @else if (items().length === 0) {
-        <p class="muted state">Nessun incendio attivo rilevato in Sardegna.</p>
-      } @else {
-        <p class="muted count">{{ items().length }} focolai rilevati</p>
-        <ul class="list">
-          @for (f of items(); track f.id) {
-            <li class="card row">
-              <span class="ic">🔥</span>
-              <div class="body">
-                <strong>Focolaio · {{ f.source }}</strong>
-                <span class="muted">
-                  {{ f.lat }}, {{ f.lng }}@if (f.acquired_at) { · {{ f.acquired_at }} }
-                  @if (f.confidence !== null) { · conf. {{ f.confidence }} }
-                </span>
-              </div>
-            </li>
-          }
-        </ul>
-      }
-    </section>
-  `,
-  styles: [
-    `
-      .ph {
-        margin-bottom: 1rem;
-      }
-      .ph h1 {
-        font-size: var(--text-2xl);
-      }
-      .count {
-        margin: 0 0 0.75rem;
-        font-weight: 600;
-      }
-      .state {
-        padding: 2rem 0;
-      }
-      .list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: grid;
-        gap: 0.6rem;
-      }
-      .row {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        padding: 0.7rem 0.9rem;
-      }
-      .row .ic {
-        font-size: 1.3rem;
-      }
-      .body {
-        display: flex;
-        flex-direction: column;
-      }
-      .body .muted {
-        font-size: var(--text-sm);
-      }
-    `,
-  ],
+  templateUrl: './fires-page.html',
+  styleUrl: './fires-page.css',
 })
 export class FiresPage {
   private readonly feeds = inject(FeedsService);
-  protected readonly items = signal<Fire[]>([]);
+
+  protected readonly data = signal<FiresResponse | null>(null);
   protected readonly loading = signal(true);
+  protected readonly filter = signal<ProvinceCode | 'all'>('all');
+
+  protected readonly provinces = PROVINCES;
+
+  protected readonly fires = computed<Fire[]>(() => {
+    const d = this.data();
+    if (!d) return [];
+    const f = this.filter();
+    return f === 'all' ? d.fires : d.fires.filter((x) => x.province_code === f);
+  });
+
+  protected readonly severityChips = computed(() => {
+    const s = this.data()?.stats?.by_severity ?? {};
+    return SEVERITY_ORDER.filter((k) => s[k]).map((k) => ({ key: k, n: s[k] }));
+  });
 
   constructor() {
     this.feeds.fires().subscribe({
-      next: (d) => this.items.set(d.fires),
+      next: (d) => this.data.set(d),
       complete: () => this.loading.set(false),
       error: () => this.loading.set(false),
     });
+  }
+
+  setFilter(f: ProvinceCode | 'all'): void {
+    this.filter.set(f);
+  }
+
+  provinceCount(code: ProvinceCode): number {
+    return this.data()?.stats?.by_province?.[code] ?? 0;
+  }
+
+  provinceName(code: string | null | undefined): string {
+    return PROVINCES.find((p) => p.code === code)?.name ?? '—';
+  }
+
+  // FIRMS: acquired_at = "YYYY-MM-DD HHMM" → "YYYY-MM-DD HH:MM".
+  fmtWhen(s: string | null): string {
+    if (!s) return '—';
+    return s.replace(/\s(\d{2})(\d{2})$/, ' $1:$2');
+  }
+
+  round(v: number | null | undefined): string {
+    return v == null ? '—' : String(Math.round(v));
+  }
+
+  coord(v: number | null | undefined): string {
+    return v == null ? '—' : v.toFixed(3);
+  }
+
+  frpText(v: number | null | undefined): string {
+    return v == null ? '—' : `${Math.round(v)} MW`;
+  }
+
+  brightnessText(v: number | null | undefined): string {
+    return v == null ? '—' : `${Math.round(v)} K`;
   }
 }

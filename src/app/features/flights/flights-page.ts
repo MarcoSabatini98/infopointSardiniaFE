@@ -1,97 +1,75 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FeedsService } from '../../core/services/feeds.service';
-import { Flight } from '../../core/models/feeds.models';
+import { Flight, FlightPhase, FlightsResponse } from '../../core/models/feeds.models';
+
+const PHASE_ORDER: FlightPhase[] = [
+  'in arrivo',
+  'in partenza',
+  'in avvicinamento',
+  'in transito',
+  'a terra',
+];
 
 @Component({
   selector: 'app-flights-page',
-  template: `
-    <section class="container">
-      <header class="ph">
-        <h1>✈️ Traffico aereo</h1>
-        <p class="muted">Aerei attualmente sopra o intorno alla Sardegna (OpenSky).</p>
-      </header>
-
-      @if (loading()) {
-        <p class="muted">Caricamento…</p>
-      } @else if (items().length === 0) {
-        <p class="muted state">Nessun aereo rilevato nell'area.</p>
-      } @else {
-        <p class="muted count">{{ items().length }} aerei in volo</p>
-        <div class="card tablewrap">
-          <table class="tbl">
-            <thead>
-              <tr><th>Volo</th><th>Provenienza</th><th>Quota</th><th>Velocità</th></tr>
-            </thead>
-            <tbody>
-              @for (f of items(); track f.icao24) {
-                <tr>
-                  <td><strong>{{ f.callsign || f.icao24 }}</strong></td>
-                  <td>{{ f.origin_country || '–' }}</td>
-                  <td>{{ f.geo_altitude !== null ? round(f.geo_altitude) + ' m' : '–' }}</td>
-                  <td>{{ f.velocity !== null ? round(f.velocity) + ' m/s' : '–' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </section>
-  `,
-  styles: [
-    `
-      .ph {
-        margin-bottom: 1rem;
-      }
-      .ph h1 {
-        font-size: var(--text-2xl);
-      }
-      .count {
-        margin: 0 0 0.75rem;
-        font-weight: 600;
-      }
-      .state {
-        padding: 2rem 0;
-      }
-      .tablewrap {
-        overflow-x: auto;
-      }
-      .tbl {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: var(--text-sm);
-      }
-      .tbl th,
-      .tbl td {
-        text-align: left;
-        padding: 0.6rem 0.9rem;
-        border-bottom: 1px solid var(--line);
-      }
-      .tbl th {
-        font-size: var(--text-xs);
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        color: var(--ink-soft);
-      }
-      .tbl tr:last-child td {
-        border-bottom: 0;
-      }
-    `,
-  ],
+  templateUrl: './flights-page.html',
+  styleUrl: './flights-page.css',
 })
 export class FlightsPage {
   private readonly feeds = inject(FeedsService);
-  protected readonly items = signal<Flight[]>([]);
+
+  protected readonly data = signal<FlightsResponse | null>(null);
   protected readonly loading = signal(true);
+  protected readonly filter = signal<FlightPhase | 'all'>('all');
+
+  protected readonly flights = computed<Flight[]>(() => {
+    const d = this.data();
+    if (!d) return [];
+    const f = this.filter();
+    return f === 'all' ? d.flights : d.flights.filter((x) => x.phase === f);
+  });
+
+  protected readonly phaseChips = computed(() => {
+    const s = this.data()?.stats?.by_phase ?? {};
+    return PHASE_ORDER.filter((k) => s[k]).map((k) => ({ key: k, n: s[k] }));
+  });
+
+  protected readonly airlineChips = computed(() => {
+    const s = this.data()?.stats?.by_airline ?? {};
+    return Object.entries(s)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([name, n]) => ({ name, n }));
+  });
+
+  // KPI rapidi.
+  protected readonly arrivi = computed(() => this.data()?.stats?.by_phase?.['in arrivo'] ?? 0);
+  protected readonly partenze = computed(() => this.data()?.stats?.by_phase?.['in partenza'] ?? 0);
+  protected readonly transito = computed(() => this.data()?.stats?.by_phase?.['in transito'] ?? 0);
 
   constructor() {
     this.feeds.flights().subscribe({
-      next: (d) => this.items.set(d.flights),
+      next: (d) => this.data.set(d),
       complete: () => this.loading.set(false),
       error: () => this.loading.set(false),
     });
   }
 
-  protected round(v: number) {
-    return Math.round(v);
+  setFilter(f: FlightPhase | 'all'): void {
+    this.filter.set(f);
+  }
+
+  kmh(v: number | null | undefined): string {
+    return v == null ? '—' : `${Math.round(v * 3.6)} km/h`;
+  }
+  alt(v: number | null | undefined): string {
+    return v == null ? '—' : `${Math.round(v)} m`;
+  }
+  heading(v: number | null | undefined): number {
+    return v == null ? 0 : Math.round(v);
+  }
+  vrate(v: number | null | undefined): string {
+    if (v == null || Math.abs(v) < 0.5) return '→ livello';
+    return v > 0 ? '↑ salita' : '↓ discesa';
   }
 }
