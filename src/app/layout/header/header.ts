@@ -26,6 +26,7 @@ import { AuthService } from '../../core/services/auth.service';
         <a routerLink="/eventi" routerLinkActive="active">Eventi</a>
         @if (session.isAuthenticated()) {
           <a routerLink="/gestione" routerLinkActive="active">Gestione</a>
+          <a routerLink="/impostazioni" routerLinkActive="active">Impostazioni</a>
         }
       </nav>
 

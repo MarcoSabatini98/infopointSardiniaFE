@@ -159,7 +159,9 @@
               <ul class="feed">
                 @for (e of provinceEvents(); track e.title + (e.comune || '')) {
                   <li>
-                    @if (e.link) {
+                    @if (e.uuid) {
+                      <a [routerLink]="['/eventi', e.uuid]">{{ e.title }}</a>
+                    } @else if (e.link) {
                       <a [href]="e.link" target="_blank" rel="noopener">{{ e.title }}</a>
                     } @else {
                       <span class="ev-line">{{ e.title }}</span>

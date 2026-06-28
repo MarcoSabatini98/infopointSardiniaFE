@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { EventsService } from '../../core/services/events.service';
 import {
   CATEGORIES_BY_TYPE,
@@ -43,7 +44,7 @@ function emptyForm(): EventForm {
 
 @Component({
   selector: 'app-events-admin',
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, RouterLink],
   templateUrl: './events-admin.html',
   styleUrl: './events-admin.css',
 })

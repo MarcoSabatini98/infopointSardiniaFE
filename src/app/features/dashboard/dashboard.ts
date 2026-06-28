@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { SardiniaMap } from './sardinia-map';
 import { FeedsService } from '../../core/services/feeds.service';
 import { MapService, ProvinceInfo } from '../../core/services/map.service';
@@ -10,7 +11,7 @@ import { GeoLayer, LAYERS } from './map-layers';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [SardiniaMap, DatePipe],
+  imports: [SardiniaMap, DatePipe, RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
