@@ -109,7 +109,7 @@
         <tbody>
           @for (e of items(); track e.uuid) {
             <tr>
-              <td>{{ e.title }}</td>
+              <td><a [routerLink]="['/eventi', e.uuid]">{{ e.title }}</a></td>
               <td>{{ e.type === 'NATURALE' ? 'Naturale' : 'Culturale' }} · {{ e.category }}</td>
               <td>{{ e.province_code }}</td>
               <td>{{ e.start_date | date: 'd MMM yyyy' }}</td>

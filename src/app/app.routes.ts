@@ -43,6 +43,11 @@ export const routes: Routes = [
     title: 'Eventi — infopoint Sardegna',
   },
   {
+    path: 'eventi/:id',
+    loadComponent: () => import('./features/events/event-detail').then((m) => m.EventDetail),
+    title: 'Evento — infopoint Sardegna',
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
     title: 'Accedi — infopoint Sardegna',
@@ -52,6 +57,12 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () => import('./features/admin/events-admin').then((m) => m.EventsAdmin),
     title: 'Gestione eventi — infopoint Sardegna',
+  },
+  {
+    path: 'impostazioni',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./features/admin/settings-admin').then((m) => m.SettingsAdmin),
+    title: 'Impostazioni — infopoint Sardegna',
   },
   { path: '**', redirectTo: '' },
 ];
