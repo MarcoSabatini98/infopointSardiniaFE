@@ -1,0 +1,56 @@
+<section class="container">
+  <header class="head">
+    <div>
+      <h1>Eventi in Sardegna</h1>
+      <p class="muted sub">Manifestazioni, mostre e appuntamenti dalla fonte ufficiale SardegnaTurismo.</p>
+    </div>
+    @if (!loading() && items().length) {
+      <span class="count">{{ items().length }} eventi</span>
+    }
+  </header>
+
+  @if (loading()) {
+    <div class="grid">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="card ev">
+          <div class="skeleton thumb"></div>
+          <div class="ev-body">
+            <div class="skeleton line sk-chip"></div>
+            <div class="skeleton line sk-title"></div>
+            <div class="skeleton line sk-meta"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <p class="muted state">Impossibile caricare gli eventi al momento. Riprova più tardi.</p>
+  } @else if (items().length === 0) {
+    <p class="muted state">Nessun evento in programma.</p>
+  } @else {
+    <div class="grid">
+      @for (e of items(); track e.link) {
+        <a class="card ev" [href]="e.link" target="_blank" rel="noopener">
+          <div class="thumb" [class.placeholder]="!e.image">
+            @if (e.image) {
+              <img [src]="e.image" [alt]="e.title" loading="lazy" />
+            } @else {
+              <span aria-hidden="true">iS</span>
+            }
+          </div>
+          <div class="ev-body">
+            <span class="src">{{ e.source }}</span>
+            <h2>{{ e.title }}</h2>
+            <div class="meta">
+              @if (e.date) {
+                <span class="when">{{ e.date }}</span>
+              }
+              @if (e.location) {
+                <span class="loc">{{ e.location }}</span>
+              }
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>
