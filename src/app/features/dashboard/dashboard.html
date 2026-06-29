@@ -157,7 +157,7 @@
               <p class="muted sm empty">Nessun evento per questa provincia.</p>
             } @else {
               <ul class="feed">
-                @for (e of provinceEvents(); track e.title + (e.comune || '')) {
+                @for (e of provinceEvents(); track e.title + (e.comune || '') + $index) {
                   <li>
                     @if (e.uuid) {
                       <a [routerLink]="['/eventi', e.uuid]">{{ e.title }}</a>

@@ -210,9 +210,10 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
           .subscribe((d: VesselsResponse) => {
           d.vessels.forEach((v) =>
             this.marker(v.lat, v.lng, def, [
-              [v.name || `MMSI ${v.mmsi}`, true],
-              [v.sog != null ? `Velocità ${v.sog} kn` : ''],
-              [v.heading != null ? `Rotta ${v.heading}°` : ''],
+              [`${v.name || 'MMSI ' + v.mmsi}${v.type_label ? ' · ' + v.type_label : ''}`, true],
+              [v.sog != null ? `Velocità ${Math.round(v.sog * 1.852)} km/h (${v.sog} kn)` : ''],
+              [v.destination ? `Destinazione: ${v.destination}` : ''],
+              [v.cog != null ? `Rotta ${Math.round(v.cog)}°` : ''],
             ]),
           );
           done(d.count);

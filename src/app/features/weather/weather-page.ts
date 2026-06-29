@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FeedsService } from '../../core/services/feeds.service';
-import { Alert, WeatherProvince } from '../../core/models/feeds.models';
+import { AirResponse, Alert, WeatherProvince } from '../../core/models/feeds.models';
 import { PROVINCES, ProvinceCode } from '../../core/models/province.models';
 import { weatherInfo, windDir } from '../dashboard/map-layers';
 
@@ -36,6 +36,7 @@ export class WeatherPage {
   protected readonly provinces = PROVINCES;
   protected readonly summary = signal<WeatherProvince[]>([]);
   protected readonly detail = signal<WeatherProvince | null>(null);
+  protected readonly air = signal<AirResponse | null>(null);
   protected readonly alerts = signal<Alert[]>([]);
   protected readonly loadingDetail = signal(false);
   protected readonly searchError = signal<string | null>(null);
@@ -62,6 +63,7 @@ export class WeatherPage {
     this.feeds.searchWeather(q).subscribe({
       next: (d) => {
         this.detail.set(d);
+        this.loadAir(d.coordinates);
         this.loadingDetail.set(false);
       },
       error: (e) => {
@@ -76,10 +78,21 @@ export class WeatherPage {
     this.searchError.set(null);
     this.feeds.weather(code).subscribe({
       next: (d) => {
-        this.detail.set(d as WeatherProvince);
+        const wp = d as WeatherProvince;
+        this.detail.set(wp);
+        this.loadAir(wp.coordinates);
         this.loadingDetail.set(false);
       },
       error: () => this.loadingDetail.set(false),
+    });
+  }
+
+  private loadAir(c: { lat: number; lng: number } | undefined): void {
+    if (!c) return;
+    this.air.set(null);
+    this.feeds.air(c.lat, c.lng).subscribe({
+      next: (a) => this.air.set(a),
+      error: () => this.air.set(null),
     });
   }
 
@@ -119,5 +132,21 @@ export class WeatherPage {
       pop: d.precipitation_probability_max?.[i] ?? null,
       wind: d.wind_speed_10m_max?.[i] ?? null,
     }));
+  }
+
+  // Pollini con valore > 0 (grani/m³).
+  protected pollens(a: AirResponse): { label: string; value: number }[] {
+    const c = a.current;
+    if (!c) return [];
+    const map: { label: string; v: number | undefined }[] = [
+      { label: 'Graminacee', v: c.grass_pollen },
+      { label: 'Olivo', v: c.olive_pollen },
+      { label: 'Betulla', v: c.birch_pollen },
+      { label: 'Ontano', v: c.alder_pollen },
+      { label: 'Ambrosia', v: c.ragweed_pollen },
+    ];
+    return map
+      .filter((p) => p.v != null && p.v > 0)
+      .map((p) => ({ label: p.label, value: Math.round(p.v as number) }));
   }
 }

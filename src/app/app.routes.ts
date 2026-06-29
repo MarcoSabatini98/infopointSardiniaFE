@@ -33,6 +33,16 @@ export const routes: Routes = [
     title: 'Navi — infopoint Sardegna',
   },
   {
+    path: 'mare',
+    loadComponent: () => import('./features/marine/marine-page').then((m) => m.MarinePage),
+    title: 'Mare — infopoint Sardegna',
+  },
+  {
+    path: 'carburante',
+    loadComponent: () => import('./features/fuel/fuel-page').then((m) => m.FuelPage),
+    title: 'Carburante — infopoint Sardegna',
+  },
+  {
     path: 'news',
     loadComponent: () => import('./features/news/news-page').then((m) => m.NewsPage),
     title: 'News — infopoint Sardegna',

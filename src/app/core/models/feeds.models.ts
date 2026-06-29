@@ -165,11 +165,16 @@ export interface Vessel {
   sog: number | null;
   cog: number | null;
   heading: number | null;
+  type?: number | null;
+  type_label?: string | null;
+  destination?: string | null;
+  callsign?: string | null;
   updated_at: string;
 }
 export interface VesselsResponse {
   available: boolean;
   count: number;
+  stats?: { by_type: Record<string, number> };
   vessels: Vessel[];
   note?: string;
 }
@@ -193,6 +198,73 @@ export interface TrafficIncident {
   lng?: number | null;
   geometry?: unknown;
 }
+// ── Mare (Open-Meteo Marine) ──
+export interface MarineCurrent {
+  wave_height?: number;
+  wave_direction?: number;
+  wave_period?: number;
+  sea_surface_temperature?: number;
+}
+export interface MarineProvince {
+  province: { code: ProvinceCode; name: string };
+  coordinates: { lat: number; lng: number };
+  current: MarineCurrent | null;
+  daily?: {
+    time?: string[];
+    wave_height_max?: number[];
+    wave_period_max?: number[];
+    wave_direction_dominant?: number[];
+  } | null;
+}
+
+// ── Qualità aria (Open-Meteo Air Quality) ──
+export interface AirCurrent {
+  european_aqi?: number;
+  pm10?: number;
+  pm2_5?: number;
+  ozone?: number;
+  nitrogen_dioxide?: number;
+  sulphur_dioxide?: number;
+  carbon_monoxide?: number;
+  uv_index?: number;
+  alder_pollen?: number;
+  birch_pollen?: number;
+  grass_pollen?: number;
+  olive_pollen?: number;
+  ragweed_pollen?: number;
+}
+export interface AirResponse {
+  coordinates: { lat: number; lng: number };
+  current: AirCurrent | null;
+  aqi_label: string | null;
+}
+
+// ── Carburanti (MIMIT) ──
+export interface FuelPrice {
+  type: string;
+  price: number;
+  self: boolean;
+}
+export interface FuelStation {
+  id: string;
+  brand: string | null;
+  name: string | null;
+  address: string | null;
+  comune: string | null;
+  province_code: ProvinceCode;
+  lat: number | null;
+  lng: number | null;
+  fuels: FuelPrice[];
+}
+export interface FuelResponse {
+  available: boolean;
+  count: number;
+  updated_at?: string | null;
+  stats?: { by_province: Record<string, number> };
+  stations: FuelStation[];
+  error?: string;
+}
+
 export interface TrafficResponse {
   available: boolean;
   count: number;

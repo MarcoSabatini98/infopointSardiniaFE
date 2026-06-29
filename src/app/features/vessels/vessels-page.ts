@@ -1,93 +1,53 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FeedsService } from '../../core/services/feeds.service';
-import { Vessel } from '../../core/models/feeds.models';
+import { Vessel, VesselsResponse } from '../../core/models/feeds.models';
 
 @Component({
   selector: 'app-vessels-page',
-  template: `
-    <section class="container">
-      <header class="ph">
-        <h1>⛴️ Traffico marittimo</h1>
-        <p class="muted">Navi con posizione AIS recente intorno alla Sardegna (aisstream).</p>
-      </header>
-
-      @if (loading()) {
-        <p class="muted">Caricamento…</p>
-      } @else if (items().length === 0) {
-        <p class="muted state">Nessuna nave rilevata al momento.</p>
-      } @else {
-        <p class="muted count">{{ items().length }} navi</p>
-        <div class="card tablewrap">
-          <table class="tbl">
-            <thead>
-              <tr><th>Nave</th><th>MMSI</th><th>Velocità</th><th>Rotta</th></tr>
-            </thead>
-            <tbody>
-              @for (v of items(); track v.mmsi) {
-                <tr>
-                  <td><strong>{{ v.name || '—' }}</strong></td>
-                  <td>{{ v.mmsi }}</td>
-                  <td>{{ v.sog !== null ? v.sog + ' kn' : '–' }}</td>
-                  <td>{{ v.heading !== null ? v.heading + '°' : '–' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </section>
-  `,
-  styles: [
-    `
-      .ph {
-        margin-bottom: 1rem;
-      }
-      .ph h1 {
-        font-size: var(--text-2xl);
-      }
-      .count {
-        margin: 0 0 0.75rem;
-        font-weight: 600;
-      }
-      .state {
-        padding: 2rem 0;
-      }
-      .tablewrap {
-        overflow-x: auto;
-      }
-      .tbl {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: var(--text-sm);
-      }
-      .tbl th,
-      .tbl td {
-        text-align: left;
-        padding: 0.6rem 0.9rem;
-        border-bottom: 1px solid var(--line);
-      }
-      .tbl th {
-        font-size: var(--text-xs);
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        color: var(--ink-soft);
-      }
-      .tbl tr:last-child td {
-        border-bottom: 0;
-      }
-    `,
-  ],
+  templateUrl: './vessels-page.html',
+  styleUrl: './vessels-page.css',
 })
 export class VesselsPage {
   private readonly feeds = inject(FeedsService);
-  protected readonly items = signal<Vessel[]>([]);
+
+  protected readonly data = signal<VesselsResponse | null>(null);
   protected readonly loading = signal(true);
+  protected readonly filter = signal<string>('all');
+
+  protected readonly vessels = computed<Vessel[]>(() => {
+    const d = this.data();
+    if (!d) return [];
+    const f = this.filter();
+    return f === 'all' ? d.vessels : d.vessels.filter((v) => (v.type_label || 'sconosciuto') === f);
+  });
+
+  protected readonly typeChips = computed(() => {
+    const s = this.data()?.stats?.by_type ?? {};
+    return Object.entries(s)
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, n]) => ({ key, n }));
+  });
 
   constructor() {
     this.feeds.vessels().subscribe({
-      next: (d) => this.items.set(d.vessels),
+      next: (d) => this.data.set(d),
       complete: () => this.loading.set(false),
       error: () => this.loading.set(false),
     });
+  }
+
+  setFilter(f: string): void {
+    this.filter.set(f);
+  }
+
+  // Nodi → km/h (1 kn = 1.852 km/h).
+  kmh(sog: number | null | undefined): string {
+    return sog == null ? '—' : `${Math.round(sog * 1.852)} km/h`;
+  }
+  kn(sog: number | null | undefined): string {
+    return sog == null ? '—' : `${sog} kn`;
+  }
+  heading(v: number | null | undefined): number {
+    return v == null ? 0 : Math.round(v);
   }
 }

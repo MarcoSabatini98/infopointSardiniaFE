@@ -97,7 +97,7 @@
         <h3>Avvisi meteo</h3>
         @if (detail()?.advisories?.length) {
           <ul class="adv">
-            @for (a of detail()!.advisories!; track a.label) {
+            @for (a of detail()!.advisories!; track a.day + a.label) {
               <li class="advisory" [attr.data-l]="a.level">{{ a.label }}</li>
             }
           </ul>
@@ -105,6 +105,30 @@
           <p class="muted sm">Nessun avviso meteo per oggi/domani.</p>
         }
       </article>
+
+      @if (air(); as a) {
+        <article class="card block">
+          <h3>Qualità dell'aria</h3>
+          <div class="aqi" [attr.data-q]="a.aqi_label">
+            <span class="aqi-n">{{ a.current?.european_aqi ?? '–' }}</span>
+            <span class="aqi-l">{{ a.aqi_label || 'n/d' }}</span>
+          </div>
+          <dl class="airgrid">
+            <div><dt>PM2.5</dt><dd>{{ a.current?.pm2_5 ?? '–' }} µg/m³</dd></div>
+            <div><dt>PM10</dt><dd>{{ a.current?.pm10 ?? '–' }} µg/m³</dd></div>
+            <div><dt>Ozono</dt><dd>{{ a.current?.ozone ?? '–' }} µg/m³</dd></div>
+            <div><dt>UV</dt><dd>{{ a.current?.uv_index ?? '–' }}</dd></div>
+          </dl>
+          @if (pollens(a).length) {
+            <div class="pollen">
+              <span class="pl-title muted">Pollini</span>
+              @for (p of pollens(a); track p.label) {
+                <span class="pl-chip">{{ p.label }}: {{ p.value }}</span>
+              }
+            </div>
+          }
+        </article>
+      }
 
       <article class="card block">
         <h3>Allerte Protezione Civile</h3>

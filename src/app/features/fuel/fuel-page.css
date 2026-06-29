@@ -1,0 +1,103 @@
+.ph {
+  margin-bottom: 1rem;
+}
+.ph h1 {
+  font-size: var(--text-2xl);
+}
+.sub {
+  margin: 0.3rem 0 0;
+  font-size: var(--text-sm);
+  max-width: 70ch;
+}
+.state {
+  padding: 2rem 0;
+}
+
+.filters {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+.provs {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+.fbtn {
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.fbtn.on {
+  background: var(--sea);
+  border-color: var(--sea);
+  color: #fff;
+}
+.ftype {
+  width: auto;
+}
+.search {
+  width: auto;
+  flex: 1;
+  min-width: 180px;
+}
+.count {
+  font-size: var(--text-sm);
+  margin: 0 0 0.75rem;
+}
+
+.tablewrap {
+  overflow-x: auto;
+}
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.tbl th,
+.tbl td {
+  text-align: left;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.tbl th {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+.tbl tr:last-child td {
+  border-bottom: 0;
+}
+.price {
+  font-weight: 800;
+  color: var(--sea-strong);
+}
+.addr {
+  max-width: 26ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.others {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+.fchip {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+}

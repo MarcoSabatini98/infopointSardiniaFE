@@ -68,7 +68,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (f of fires(); track f.id) {
+          @for (f of fires(); track f.id ?? $index) {
             <tr>
               <td><span class="sev" [attr.data-sev]="f.severity">{{ f.severity }}</span></td>
               <td>{{ provinceName(f.province_code) }}</td>

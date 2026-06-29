@@ -60,7 +60,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (i of incidents(); track i.id) {
+          @for (i of incidents(); track i.id ?? $index) {
             <tr>
               <td><span class="sev" [attr.data-sev]="i.severity">{{ i.severity }}</span></td>
               <td>

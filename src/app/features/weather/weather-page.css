@@ -225,6 +225,83 @@
   font-size: var(--text-sm);
 }
 
+/* Qualità aria */
+.aqi {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  margin-bottom: 0.7rem;
+}
+.aqi-n {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+.aqi-l {
+  font-weight: 700;
+  text-transform: capitalize;
+}
+.aqi[data-q='buona'] {
+  background: oklch(0.93 0.08 150);
+}
+.aqi[data-q='discreta'] {
+  background: oklch(0.93 0.08 120);
+}
+.aqi[data-q='moderata'] {
+  background: oklch(0.95 0.09 90);
+}
+.aqi[data-q='scarsa'] {
+  background: oklch(0.93 0.08 50);
+}
+.aqi[data-q='molto scarsa'],
+.aqi[data-q='pessima'] {
+  background: oklch(0.9 0.09 30);
+  color: var(--danger);
+}
+.airgrid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem 0.8rem;
+}
+.airgrid div {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.25rem;
+}
+.airgrid dt {
+  color: var(--ink-soft);
+}
+.airgrid dd {
+  margin: 0;
+  font-weight: 600;
+}
+.pollen {
+  margin-top: 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+.pl-title {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: 100%;
+}
+.pl-chip {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--sea-tint);
+  color: var(--sea-strong);
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;

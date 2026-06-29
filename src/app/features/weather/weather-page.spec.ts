@@ -9,6 +9,7 @@ const feedsMock = {
     of(code ? { coordinates: { lat: 0, lng: 0 }, current: null, daily: null, hourly: null } : []),
   floods: () => of({ available: true, count: 0, alerts: [] }),
   searchWeather: () => of({ coordinates: { lat: 0, lng: 0 }, current: null }),
+  air: () => of({ coordinates: { lat: 0, lng: 0 }, current: null, aqi_label: null }),
 };
 
 describe('WeatherPage', () => {
