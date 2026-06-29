@@ -5,7 +5,7 @@ import { NewsPage } from './news-page';
 import { FeedsService } from '../../core/services/feeds.service';
 
 describe('NewsPage', () => {
-  it('mostra la testata news', async () => {
+  it('mostra la testata del giornale', async () => {
     await render(NewsPage, {
       providers: [
         {
@@ -14,6 +14,6 @@ describe('NewsPage', () => {
         },
       ],
     });
-    expect(screen.getByRole('heading', { name: /notizie dalla sardegna/i })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /cronaca sarda/i })).toBeTruthy();
   });
 });

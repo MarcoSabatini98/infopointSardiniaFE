@@ -1,99 +1,68 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FeedsService } from '../../core/services/feeds.service';
-import { TrafficIncident } from '../../core/models/feeds.models';
+import { TrafficIncident, TrafficResponse } from '../../core/models/feeds.models';
+import { PROVINCES, ProvinceCode } from '../../core/models/province.models';
+
+const SEVERITY_ORDER = ['chiusura', 'grave', 'moderata', 'lieve', 'n/d'];
 
 @Component({
   selector: 'app-traffic-page',
-  template: `
-    <section class="container">
-      <header class="ph">
-        <h1>🚧 Traffico stradale</h1>
-        <p class="muted">Incidenti, cantieri e code sulle strade sarde (TomTom).</p>
-      </header>
-
-      @if (loading()) {
-        <p class="muted">Caricamento…</p>
-      } @else if (items().length === 0) {
-        <p class="muted state">Nessun evento di traffico segnalato.</p>
-      } @else {
-        <p class="muted count">{{ items().length }} segnalazioni</p>
-        <ul class="list">
-          @for (i of items(); track i.id) {
-            <li class="card row">
-              <span class="cat">{{ i.category }}</span>
-              <div class="body">
-                <strong>{{ i.description || i.category }}</strong>
-                <span class="muted">
-                  @if (i.road_numbers?.length) { {{ i.road_numbers!.join(', ') }} }
-                  @if (i.from) { · da {{ i.from }} }@if (i.to) { → {{ i.to }} }
-                </span>
-              </div>
-            </li>
-          }
-        </ul>
-      }
-    </section>
-  `,
-  styles: [
-    `
-      .ph {
-        margin-bottom: 1rem;
-      }
-      .ph h1 {
-        font-size: var(--text-2xl);
-      }
-      .count {
-        margin: 0 0 0.75rem;
-        font-weight: 600;
-      }
-      .state {
-        padding: 2rem 0;
-      }
-      .list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: grid;
-        gap: 0.6rem;
-      }
-      .row {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        padding: 0.7rem 0.9rem;
-      }
-      .cat {
-        flex: 0 0 auto;
-        font-size: var(--text-xs);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        color: var(--traffic);
-        background: oklch(0.95 0.05 75);
-        padding: 0.2rem 0.5rem;
-        border-radius: 999px;
-      }
-      .body {
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-      }
-      .body .muted {
-        font-size: var(--text-sm);
-      }
-    `,
-  ],
+  templateUrl: './traffic-page.html',
+  styleUrl: './traffic-page.css',
 })
 export class TrafficPage {
   private readonly feeds = inject(FeedsService);
-  protected readonly items = signal<TrafficIncident[]>([]);
+
+  protected readonly data = signal<TrafficResponse | null>(null);
   protected readonly loading = signal(true);
+  protected readonly filter = signal<ProvinceCode | 'all'>('all');
+  protected readonly provinces = PROVINCES;
+
+  protected readonly incidents = computed<TrafficIncident[]>(() => {
+    const d = this.data();
+    if (!d) return [];
+    const f = this.filter();
+    return f === 'all' ? d.incidents : d.incidents.filter((i) => i.province_code === f);
+  });
+
+  protected readonly severityChips = computed(() => {
+    const s = this.data()?.stats?.by_severity ?? {};
+    return SEVERITY_ORDER.filter((k) => s[k]).map((k) => ({ key: k, n: s[k] }));
+  });
 
   constructor() {
     this.feeds.traffic().subscribe({
-      next: (d) => this.items.set(d.incidents),
+      next: (d) => this.data.set(d),
       complete: () => this.loading.set(false),
       error: () => this.loading.set(false),
     });
+  }
+
+  setFilter(f: ProvinceCode | 'all'): void {
+    this.filter.set(f);
+  }
+
+  provinceCount(code: ProvinceCode): number {
+    return this.data()?.stats?.by_province?.[code] ?? 0;
+  }
+
+  provinceName(code: string | null | undefined): string {
+    return PROVINCES.find((p) => p.code === code)?.name ?? '—';
+  }
+
+  delayText(s: number | null | undefined): string {
+    if (s == null || s <= 0) return '—';
+    const m = Math.round(s / 60);
+    return m >= 1 ? `+${m} min` : `+${s}s`;
+  }
+
+  lengthText(m: number | null | undefined): string {
+    if (m == null) return '—';
+    return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
+  }
+
+  tratto(i: TrafficIncident): string {
+    if (i.from && i.to) return `${i.from} → ${i.to}`;
+    return i.from || i.to || '—';
   }
 }

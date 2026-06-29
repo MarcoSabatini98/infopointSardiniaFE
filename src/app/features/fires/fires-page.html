@@ -1,0 +1,87 @@
+<section class="container">
+  <header class="ph">
+    <div>
+      <h1>🔥 Guardia-fuochi</h1>
+      <p class="muted sub">
+        Incendi attivi rilevati da satellite nelle ultime ore.
+        @if (data()?.source) { Fonte: <strong>{{ data()!.source }}</strong>. }
+        @if (data()?.updated_at) { Ultimo rilevamento: {{ fmtWhen(data()!.updated_at!) }}. }
+      </p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Caricamento…</p>
+  } @else if (!data()?.available || data()!.count === 0) {
+    <div class="card calm">
+      <span class="ok-ic">✅</span>
+      <div>
+        <strong>Nessun incendio attivo</strong>
+        <p class="muted">Nessun focolaio rilevato in Sardegna nelle ultime ore.</p>
+      </div>
+    </div>
+  } @else {
+    <!-- Riepilogo -->
+    <div class="kpis">
+      <div class="kpi alarm">
+        <span class="kn">{{ data()!.count }}</span>
+        <span class="kl">focolai attivi</span>
+      </div>
+      <div class="kpi">
+        <span class="kn">{{ round(data()!.stats?.max_frp) }}</span>
+        <span class="kl">FRP max (MW)</span>
+      </div>
+      <div class="kpi sev">
+        @for (s of severityChips(); track s.key) {
+          <span class="sev-chip" [attr.data-sev]="s.key">{{ s.key }} · {{ s.n }}</span>
+        }
+      </div>
+    </div>
+
+    <!-- Filtro provincia -->
+    <div class="filters">
+      <button class="fbtn" [class.on]="filter() === 'all'" (click)="setFilter('all')">
+        Tutte ({{ data()!.count }})
+      </button>
+      @for (p of provinces; track p.code) {
+        @if (provinceCount(p.code) > 0) {
+          <button class="fbtn" [class.on]="filter() === p.code" (click)="setFilter(p.code)">
+            {{ p.name }} ({{ provinceCount(p.code) }})
+          </button>
+        }
+      }
+    </div>
+
+    <!-- Lista focolai -->
+    <div class="card tablewrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Severità</th>
+            <th>Provincia</th>
+            <th>Posizione</th>
+            <th>FRP</th>
+            <th>Luminosità</th>
+            <th>Conf.</th>
+            <th>Sat.</th>
+            <th>Rilevato</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of fires(); track f.id ?? $index) {
+            <tr>
+              <td><span class="sev" [attr.data-sev]="f.severity">{{ f.severity }}</span></td>
+              <td>{{ provinceName(f.province_code) }}</td>
+              <td class="mono">{{ coord(f.lat) }}, {{ coord(f.lng) }}</td>
+              <td><strong>{{ frpText(f.frp) }}</strong></td>
+              <td>{{ brightnessText(f.brightness) }}</td>
+              <td>{{ f.confidence ?? '—' }}</td>
+              <td>{{ f.satellite ?? '—' }} @if (f.daynight) { · {{ f.daynight }} }</td>
+              <td class="mono">{{ fmtWhen(f.acquired_at) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

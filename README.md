@@ -74,10 +74,18 @@ La base API è in `src/environments/environment.ts` (`apiBase`, default `http://
 ## Funzionalità
 
 - **Dashboard**: mappa Leaflet con selettore layer (meteo, incendi, voli, navi, traffico, eventi),
-  marker a icona con popup di dettaglio, province cliccabili (outline) con vista aggregata
-  (toggle Globale / Provincia), pannello allerte + news.
-- **Eventi**: elenco eventi ufficiali da SardegnaTurismo (card con immagine).
-- **Login + Gestione**: CRUD eventi per l'operatore admin (rotta protetta da guard).
+  marker a icona con popup di dettaglio, province cliccabili (outline) + toggle Globale/Provincia,
+  pannello allerte + news (filtrate per provincia al click).
+- **Meteo**: ricerca per città + province, corrente dettagliata, orario 24h, previsioni fino a
+  14 giorni, avvisi derivati, **qualità aria + pollini**.
+- **Mare**: condizioni del mare per costa provinciale (onde, temperatura, periodo).
+- **Incendi**: pannello "guardia-fuochi" (severità FRP, provincia, satellite, stats).
+- **Traffico**: incidenti/code/chiusure con **comune** (reverse-geocoding), severità, ritardo.
+- **Voli**: "radar" con compagnia, fase volo (arrivo/partenza/transito), telemetria.
+- **Navi**: tipo imbarcazione, velocità (km/h + nodi), destinazione.
+- **Carburante**: prezzi MIMIT per impianto, filtri provincia/comune/tipo.
+- **News**: pagina in stile quotidiano. **Eventi**: card da SardegnaTurismo + dettaglio.
+- **Login + Gestione + Impostazioni**: CRUD eventi e settings per l'operatore admin (guard).
 
 ---
 
@@ -92,9 +100,10 @@ src/app/
 │   └── services/       # auth, session, events, map, feeds, settings
 ├── features/
 │   ├── dashboard/      # mappa + rail dati + selettore layer
-│   ├── events/         # lista eventi esterni
+│   ├── weather/ marine/ fires/ traffic/ flights/ vessels/ fuel/ news/
+│   ├── events/         # lista + dettaglio eventi
 │   ├── login/
-│   └── admin/          # gestione eventi (CRUD)
+│   └── admin/          # gestione eventi + impostazioni
 └── layout/
     └── header/
 ```

@@ -1,0 +1,69 @@
+<section class="container">
+  <header class="ph">
+    <h1>⛴️ Traffico marittimo</h1>
+    <p class="muted sub">
+      Navi con posizione AIS recente intorno alla Sardegna (aisstream). Tipo e destinazione
+      quando trasmessi dalla nave.
+    </p>
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Caricamento…</p>
+  } @else if (!data()?.available || data()!.count === 0) {
+    <p class="muted state">Nessuna nave rilevata al momento.</p>
+  } @else {
+    <div class="kpis">
+      <div class="kpi"><span class="kn">{{ data()!.count }}</span><span class="kl">navi</span></div>
+      <div class="kpi types">
+        @for (t of typeChips(); track t.key) {
+          <span class="t-chip">{{ t.key }} · {{ t.n }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="filters">
+      <button class="fbtn" [class.on]="filter() === 'all'" (click)="setFilter('all')">
+        Tutte ({{ data()!.count }})
+      </button>
+      @for (t of typeChips(); track t.key) {
+        <button class="fbtn" [class.on]="filter() === t.key" (click)="setFilter(t.key)">
+          {{ t.key }} ({{ t.n }})
+        </button>
+      }
+    </div>
+
+    <div class="card tablewrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Nave</th>
+            <th>Tipo</th>
+            <th>Velocità</th>
+            <th>Rotta</th>
+            <th>Destinazione</th>
+            <th>MMSI</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of vessels(); track v.mmsi) {
+            <tr>
+              <td class="radar">
+                <span class="ship" [style.transform]="'rotate(' + heading(v.cog) + 'deg)'">➤</span>
+              </td>
+              <td><strong>{{ v.name || '—' }}</strong></td>
+              <td>{{ v.type_label || '—' }}</td>
+              <td>
+                <strong>{{ kmh(v.sog) }}</strong>
+                <span class="kn-sub muted">{{ kn(v.sog) }}</span>
+              </td>
+              <td>{{ heading(v.cog) }}°</td>
+              <td>{{ v.destination || '—' }}</td>
+              <td class="mono">{{ v.mmsi }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

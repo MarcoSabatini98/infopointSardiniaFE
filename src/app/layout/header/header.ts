@@ -18,10 +18,12 @@ import { AuthService } from '../../core/services/auth.service';
           Dashboard
         </a>
         <a routerLink="/meteo" routerLinkActive="active">Meteo</a>
+        <a routerLink="/mare" routerLinkActive="active">Mare</a>
         <a routerLink="/incendi" routerLinkActive="active">Incendi</a>
         <a routerLink="/traffico" routerLinkActive="active">Traffico</a>
         <a routerLink="/voli" routerLinkActive="active">Voli</a>
         <a routerLink="/navi" routerLinkActive="active">Navi</a>
+        <a routerLink="/carburante" routerLinkActive="active">Carburante</a>
         <a routerLink="/news" routerLinkActive="active">News</a>
         <a routerLink="/eventi" routerLinkActive="active">Eventi</a>
         @if (session.isAuthenticated()) {

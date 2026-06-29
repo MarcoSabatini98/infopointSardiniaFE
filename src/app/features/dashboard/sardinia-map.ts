@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   OnDestroy,
   effect,
@@ -9,6 +10,7 @@ import {
   output,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import * as L from 'leaflet';
 import { FeedsService } from '../../core/services/feeds.service';
 import { MapService } from '../../core/services/map.service';
@@ -68,6 +70,7 @@ function pin(emoji: string, color: string): L.DivIcon {
 export class SardiniaMap implements AfterViewInit, OnDestroy {
   private readonly feeds = inject(FeedsService);
   private readonly mapService = inject(MapService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Layer attivo + provincia selezionata, controllati dal dashboard.
   readonly layer = input<GeoLayer>('weather');
@@ -115,7 +118,10 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
 
   // ── Province: outline discreto, cliccabile ──────────────────
   private loadProvinces(): void {
-    this.mapService.geojson().subscribe((fc) => {
+    this.mapService
+      .geojson()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((fc) => {
       this.geoLayer = L.geoJSON(fc, {
         style: (f) => this.provinceStyle(f?.properties?.['code']),
         onEachFeature: (feature, lyr) => {
@@ -156,64 +162,89 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
 
     switch (layer) {
       case 'weather':
-        this.feeds.weather().subscribe((d) => {
+        this.feeds
+          .weather()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d) => {
           const arr = (Array.isArray(d) ? d : [d]) as WeatherProvince[];
           arr.forEach((w) => this.weatherMarker(w));
           done(arr.length);
         });
         break;
       case 'fires':
-        this.feeds.fires().subscribe((d: FiresResponse) => {
+        this.feeds
+          .fires()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d: FiresResponse) => {
           d.fires.forEach((f) =>
             this.marker(f.lat, f.lng, def, [
-              ['Incendio attivo', true],
-              [`Fonte: ${f.source}`],
+              [`Incendio · severità ${f.severity ?? 'n/d'}`, true],
+              [f.frp != null ? `Intensità ${Math.round(f.frp)} MW` : ''],
               [f.acquired_at ? `Rilevato: ${f.acquired_at}` : ''],
+              [`Fonte: ${f.source}`],
             ]),
           );
           done(d.count);
         });
         break;
       case 'flights':
-        this.feeds.flights().subscribe((d: FlightsResponse) => {
+        this.feeds
+          .flights()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d: FlightsResponse) => {
           d.flights.forEach((f) =>
             this.marker(f.lat, f.lng, def, [
-              [f.callsign || f.icao24, true],
-              [f.origin_country ?? ''],
+              [`${f.callsign || f.icao24}${f.airline ? ' · ' + f.airline : ''}`, true],
+              [f.phase ? `${f.phase}${f.airport ? ' · ' + f.airport : ''}` : ''],
               [`Quota ${num(f.geo_altitude, ' m')} · ${num(f.velocity, ' m/s')}`],
+              [f.origin_country ?? ''],
             ]),
           );
           done(d.count);
         });
         break;
       case 'vessels':
-        this.feeds.vessels().subscribe((d: VesselsResponse) => {
+        this.feeds
+          .vessels()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d: VesselsResponse) => {
           d.vessels.forEach((v) =>
             this.marker(v.lat, v.lng, def, [
-              [v.name || `MMSI ${v.mmsi}`, true],
-              [v.sog != null ? `Velocità ${v.sog} kn` : ''],
-              [v.heading != null ? `Rotta ${v.heading}°` : ''],
+              [`${v.name || 'MMSI ' + v.mmsi}${v.type_label ? ' · ' + v.type_label : ''}`, true],
+              [v.sog != null ? `Velocità ${Math.round(v.sog * 1.852)} km/h (${v.sog} kn)` : ''],
+              [v.destination ? `Destinazione: ${v.destination}` : ''],
+              [v.cog != null ? `Rotta ${Math.round(v.cog)}°` : ''],
             ]),
           );
           done(d.count);
         });
         break;
       case 'traffic':
-        this.feeds.traffic().subscribe((d: TrafficResponse) => {
+        this.feeds
+          .traffic()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d: TrafficResponse) => {
           d.incidents.forEach((i) => {
-            const c = firstCoord(i.geometry);
-            if (c)
-              this.marker(c[1], c[0], def, [
-                [i.category, true],
-                [i.description ?? ''],
-                [i.road_numbers?.length ? `Strada: ${i.road_numbers.join(', ')}` : ''],
-              ]);
+            const lat = i.lat ?? firstCoord(i.geometry)?.[1] ?? null;
+            const lng = i.lng ?? firstCoord(i.geometry)?.[0] ?? null;
+            const delayMin = i.delay_s != null && i.delay_s > 0 ? Math.round(i.delay_s / 60) : null;
+            const tratto = i.from && i.to ? `${i.from} → ${i.to}` : i.from || i.to || '';
+            this.marker(lat, lng, def, [
+              [`${i.severity} · ${i.comune ?? i.category}`, true],
+              [i.description ?? ''],
+              [i.road_numbers?.length ? `Strada: ${i.road_numbers.join(', ')}` : ''],
+              [tratto],
+              [delayMin ? `Ritardo +${delayMin} min` : ''],
+            ]);
           });
           done(d.count);
         });
         break;
       case 'events':
-        this.mapService.layer<{ count: number; events: MapEvent[] }>('events').subscribe((d) => {
+        this.mapService
+          .layer<{ count: number; events: MapEvent[] }>('events')
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d) => {
           (d.events ?? []).forEach((e) =>
             this.marker(e.lat, e.lng, def, [
               [e.title, true],
@@ -253,7 +284,7 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
     const min = w.daily?.temperature_2m_min?.[0];
     const max = w.daily?.temperature_2m_max?.[0];
     const html = [
-      `<strong>${escapeHtml(w.province.name)}</strong>`,
+      `<strong>${escapeHtml(w.province?.name ?? w.location?.name ?? '')}</strong>`,
       `${wi.icon} ${wi.label}`,
       `🌡️ ${num(c?.temperature_2m, '°')} (perc. ${num(c?.apparent_temperature, '°')})`,
       `💧 ${num(c?.relative_humidity_2m, '%')} · 💨 ${num(c?.wind_speed_10m, ' km/h')} ${windDir(c?.wind_direction_10m)}`,

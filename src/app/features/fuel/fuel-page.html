@@ -1,0 +1,72 @@
+<section class="container">
+  <header class="ph">
+    <h1>⛽ Prezzi carburante</h1>
+    <p class="muted sub">
+      Prezzi praticati dagli impianti della Sardegna (MIMIT, open data).
+      @if (data()?.updated_at) { Aggiornati al {{ data()!.updated_at }}. }
+    </p>
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Caricamento prezzi…</p>
+  } @else if (!data()?.available) {
+    <p class="muted state">Sorgente prezzi non disponibile al momento.</p>
+  } @else {
+    <!-- Filtri -->
+    <div class="filters">
+      <div class="provs">
+        <button class="fbtn" [class.on]="province() === 'all'" (click)="setProvince('all')">
+          Tutte
+        </button>
+        @for (p of provinces; track p.code) {
+          <button class="fbtn" [class.on]="province() === p.code" (click)="setProvince(p.code)">
+            {{ p.code }}
+          </button>
+        }
+      </div>
+      <select class="select ftype" [(ngModel)]="fuelType">
+        @for (t of fuelTypes(); track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+      <input
+        class="input search"
+        type="search"
+        placeholder="Cerca comune…"
+        [(ngModel)]="comuneQuery"
+        (ngModelChange)="onComune()"
+      />
+    </div>
+
+    <p class="muted count">{{ stations().length }} impianti (ordinati per prezzo {{ fuelType }})</p>
+
+    <div class="card tablewrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>{{ fuelType }}</th>
+            <th>Distributore</th>
+            <th>Comune</th>
+            <th>Indirizzo</th>
+            <th>Altri</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of stations(); track s.id) {
+            <tr>
+              <td class="price">{{ priceText(s, fuelType) }}</td>
+              <td><strong>{{ s.brand || s.name || '—' }}</strong></td>
+              <td>{{ s.comune }} <span class="muted">{{ s.province_code }}</span></td>
+              <td class="addr muted">{{ s.address || '—' }}</td>
+              <td class="others">
+                @for (f of s.fuels.slice(0, 4); track f.type + f.price) {
+                  <span class="fchip">{{ f.type }} {{ f.price.toFixed(3) }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

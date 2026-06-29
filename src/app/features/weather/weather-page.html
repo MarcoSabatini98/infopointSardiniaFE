@@ -1,0 +1,150 @@
+<section class="container">
+  <header class="ph">
+    <h1>Meteo Sardegna</h1>
+    <form class="searchbar" (ngSubmit)="search()">
+      <input
+        class="input"
+        type="search"
+        name="q"
+        placeholder="Cerca una città (es. Alghero, Nuoro, Olbia)…"
+        [(ngModel)]="query"
+      />
+      <button class="btn btn-primary" type="submit">Cerca</button>
+    </form>
+  </header>
+
+  <!-- selettore rapido province -->
+  <div class="quick">
+    @for (p of provinces; track p.code) {
+      <button class="qbtn" type="button" (click)="loadProvince(p.code)">{{ p.name }}</button>
+    }
+  </div>
+
+  @if (searchError()) {
+    <p class="err">{{ searchError() }}</p>
+  }
+
+  <div class="layout">
+    <!-- Colonna principale -->
+    <div class="main">
+      @if (loadingDetail()) {
+        <div class="card pad"><div class="skeleton" style="height:12rem"></div></div>
+      } @else if (detail(); as d) {
+        <!-- Corrente -->
+        <article class="card now">
+          <div class="now-head">
+            <div>
+              <h2>{{ title() }}</h2>
+              <p class="muted">
+                {{ info(d.current?.weather_code, d.current?.is_day).label }}
+                @if (d.province_name) { · {{ d.province_name }} }
+              </p>
+            </div>
+            <span class="now-ic">{{ info(d.current?.weather_code, d.current?.is_day).icon }}</span>
+          </div>
+          <div class="now-temp">{{ round(d.current?.temperature_2m) }}°</div>
+          <p class="muted perc">Percepita {{ round(d.current?.apparent_temperature) }}°</p>
+          <div class="now-grid">
+            <div><span class="k">Umidità</span><span class="v">{{ round(d.current?.relative_humidity_2m) }}%</span></div>
+            <div><span class="k">Vento</span><span class="v">{{ round(d.current?.wind_speed_10m) }} km/h {{ dir(d.current?.wind_direction_10m) }}</span></div>
+            <div><span class="k">Raffiche</span><span class="v">{{ round(d.current?.wind_gusts_10m) }} km/h</span></div>
+            <div><span class="k">Precip.</span><span class="v">{{ d.current?.precipitation ?? 0 }} mm</span></div>
+            <div><span class="k">Pressione</span><span class="v">{{ round(d.current?.pressure_msl) }} hPa</span></div>
+            <div><span class="k">Nuvolosità</span><span class="v">{{ round(d.current?.cloud_cover) }}%</span></div>
+          </div>
+        </article>
+
+        <!-- Orario 24h -->
+        <article class="card block">
+          <h3>Prossime 24 ore</h3>
+          <div class="hours">
+            @for (h of hours(); track h.time) {
+              <div class="hour">
+                <span class="ht muted">{{ h.time | date: 'HH:mm' }}</span>
+                <span class="hi">{{ h.icon }}</span>
+                <span class="htemp">{{ round(h.temp) }}°</span>
+                <span class="hpop muted">💧{{ round(h.pop) }}%</span>
+                <span class="hw muted">💨{{ round(h.wind) }}</span>
+              </div>
+            }
+          </div>
+        </article>
+
+        <!-- Giornaliero -->
+        <article class="card block">
+          <h3>Prossimi giorni</h3>
+          <ul class="days">
+            @for (day of days(); track day.date) {
+              <li class="day">
+                <span class="dd">{{ day.date | date: 'EEE d MMM' }}</span>
+                <span class="di">{{ day.icon }}</span>
+                <span class="dlabel muted">{{ day.label }}</span>
+                <span class="dpop muted">💧{{ round(day.pop) }}%</span>
+                <span class="dwind muted">💨{{ round(day.wind) }}</span>
+                <span class="dtemp"><strong>{{ round(day.max) }}°</strong> / {{ round(day.min) }}°</span>
+              </li>
+            }
+          </ul>
+        </article>
+      } @else {
+        <p class="muted state">Cerca una città o scegli una provincia.</p>
+      }
+    </div>
+
+    <!-- Colonna avvisi / notizie meteo -->
+    <aside class="side">
+      <article class="card block">
+        <h3>Avvisi meteo</h3>
+        @if (detail()?.advisories?.length) {
+          <ul class="adv">
+            @for (a of detail()!.advisories!; track a.day + a.label) {
+              <li class="advisory" [attr.data-l]="a.level">{{ a.label }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="muted sm">Nessun avviso meteo per oggi/domani.</p>
+        }
+      </article>
+
+      @if (air(); as a) {
+        <article class="card block">
+          <h3>Qualità dell'aria</h3>
+          <div class="aqi" [attr.data-q]="a.aqi_label">
+            <span class="aqi-n">{{ a.current?.european_aqi ?? '–' }}</span>
+            <span class="aqi-l">{{ a.aqi_label || 'n/d' }}</span>
+          </div>
+          <dl class="airgrid">
+            <div><dt>PM2.5</dt><dd>{{ a.current?.pm2_5 ?? '–' }} µg/m³</dd></div>
+            <div><dt>PM10</dt><dd>{{ a.current?.pm10 ?? '–' }} µg/m³</dd></div>
+            <div><dt>Ozono</dt><dd>{{ a.current?.ozone ?? '–' }} µg/m³</dd></div>
+            <div><dt>UV</dt><dd>{{ a.current?.uv_index ?? '–' }}</dd></div>
+          </dl>
+          @if (pollens(a).length) {
+            <div class="pollen">
+              <span class="pl-title muted">Pollini</span>
+              @for (p of pollens(a); track p.label) {
+                <span class="pl-chip">{{ p.label }}: {{ p.value }}</span>
+              }
+            </div>
+          }
+        </article>
+      }
+
+      <article class="card block">
+        <h3>Allerte Protezione Civile</h3>
+        @if (alerts().length === 0) {
+          <p class="muted sm">Nessuna allerta attiva.</p>
+        } @else {
+          <ul class="alist">
+            @for (a of alerts().slice(0, 6); track a.link) {
+              <li>
+                <a [href]="a.link" target="_blank" rel="noopener">{{ a.title }}</a>
+                <span class="muted when">{{ a.published_at | date: 'd MMM, HH:mm' }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+    </aside>
+  </div>
+</section>
