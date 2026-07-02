@@ -64,7 +64,7 @@
                 <span class="hi">{{ h.icon }}</span>
                 <span class="htemp">{{ round(h.temp) }}°</span>
                 <span class="hpop muted">💧{{ round(h.pop) }}%</span>
-                <span class="hw muted">💨{{ round(h.wind) }}</span>
+                <span class="hw muted">💨{{ round(h.wind) }} {{ dir(h.windDir) }}</span>
               </div>
             }
           </div>

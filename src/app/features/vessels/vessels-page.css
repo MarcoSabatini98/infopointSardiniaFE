@@ -13,6 +13,60 @@
   padding: 2rem 0;
 }
 
+/* Sezione mare (stessa resa della ex pagina /mare). */
+.marine-block {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1rem;
+}
+.sea {
+  padding: 1.1rem;
+}
+.sea h2 {
+  font-size: var(--text-lg);
+}
+.big {
+  display: flex;
+  flex-direction: column;
+  margin: 0.6rem 0 0.8rem;
+}
+.wave {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--sea-strong);
+}
+.lbl {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.rows {
+  margin: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.rows div {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  border-top: 1px solid var(--line);
+  padding-top: 0.35rem;
+}
+.rows dt {
+  color: var(--ink-soft);
+}
+.rows dd {
+  margin: 0;
+  font-weight: 600;
+}
+
 .kpis {
   display: flex;
   gap: 0.8rem;

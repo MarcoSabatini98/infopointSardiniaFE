@@ -10,6 +10,13 @@
   max-width: 70ch;
 }
 
+/* Header con spiegazione all'hover */
+.help {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
 /* Stato calmo (nessun incendio) */
 .calm {
   display: flex;

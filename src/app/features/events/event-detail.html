@@ -1,0 +1,55 @@
+<section class="container">
+  <a routerLink="/eventi" class="back">← Tutti gli eventi</a>
+
+  @if (loading()) {
+    <div class="card pad"><div class="skeleton" style="height:8rem"></div></div>
+  } @else if (error() || !event()) {
+    <p class="muted state">Evento non trovato.</p>
+  } @else if (event(); as e) {
+    <article class="card detail">
+      <header class="dh">
+        <div class="tags">
+          <span class="badge">{{ e.type === 'NATURALE' ? 'Naturale' : 'Culturale' }}</span>
+          <span class="badge soft">{{ e.category }}</span>
+          <span class="status" [attr.data-s]="e.status">{{ e.status }}</span>
+        </div>
+        <h1>{{ e.title }}</h1>
+        @if (e.organizer) {
+          <p class="muted org">di {{ e.organizer }}</p>
+        }
+      </header>
+
+      @if (e.description) {
+        <p class="desc">{{ e.description }}</p>
+      }
+
+      <dl class="meta">
+        <div><dt>Provincia</dt><dd>{{ provinceName(e.province_code) }}</dd></div>
+        @if (e.comune) {
+          <div><dt>Comune</dt><dd>{{ e.comune }}</dd></div>
+        }
+        @if (e.venue) {
+          <div><dt>Luogo</dt><dd>{{ e.venue }}</dd></div>
+        }
+        <div>
+          <dt>Quando</dt>
+          <dd>
+            {{ e.start_date | date: 'd MMM yyyy' }}@if (e.end_date) {
+              → {{ e.end_date | date: 'd MMM yyyy' }}
+            }@if (e.time) { · {{ e.time }} }
+          </dd>
+        </div>
+        <div><dt>Ingresso</dt><dd>{{ e.is_free ? 'Gratuito' : (e.price ? e.price + ' €' : 'A pagamento') }}</dd></div>
+        @if (e.contacts) {
+          <div><dt>Contatti</dt><dd>{{ e.contacts }}</dd></div>
+        }
+        @if (e.website) {
+          <div>
+            <dt>Sito</dt>
+            <dd><a [href]="e.website" target="_blank" rel="noopener">{{ e.website }}</a></dd>
+          </div>
+        }
+      </dl>
+    </article>
+  }
+</section>

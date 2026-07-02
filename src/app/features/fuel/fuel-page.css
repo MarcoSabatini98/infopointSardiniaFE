@@ -49,9 +49,34 @@
   flex: 1;
   min-width: 180px;
 }
+.listbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
 .count {
   font-size: var(--text-sm);
-  margin: 0 0 0.75rem;
+  margin: 0;
+}
+.perpage {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--text-sm);
+}
+.perpage .select {
+  width: auto;
+}
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.9rem;
+  font-size: var(--text-sm);
 }
 
 .tablewrap {

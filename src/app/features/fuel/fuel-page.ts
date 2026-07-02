@@ -32,6 +32,11 @@ export class FuelPage {
     return [...common.filter((c) => set.has(c)), ...[...set].filter((t) => !common.includes(t))];
   });
 
+  // Paginazione: dimensione pagina scelta dall'utente + pagina corrente.
+  protected readonly pageSize = signal(20);
+  protected readonly page = signal(1);
+  protected readonly pageSizes = [10, 20, 50];
+
   protected readonly stations = computed<FuelStation[]>(() => {
     const d = this.data();
     if (!d) return [];
@@ -48,7 +53,19 @@ export class FuelPage {
     if (ft) {
       list = [...list].sort((a, b) => (this.priceOf(a, ft) ?? 1e9) - (this.priceOf(b, ft) ?? 1e9));
     }
-    return list.slice(0, 200);
+    return list;
+  });
+
+  protected readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.stations().length / this.pageSize())),
+  );
+
+  // Pagina corrente clampata al range valido (se i filtri riducono i risultati).
+  protected readonly pageStations = computed<FuelStation[]>(() => {
+    const list = this.stations();
+    const size = this.pageSize();
+    const p = Math.min(this.page(), Math.max(1, Math.ceil(list.length / size)));
+    return list.slice((p - 1) * size, p * size);
   });
 
   constructor() {
@@ -61,9 +78,25 @@ export class FuelPage {
 
   setProvince(p: ProvinceCode | 'all'): void {
     this.province.set(p);
+    this.page.set(1);
   }
   onComune(): void {
     this.comuneSig.set(this.comuneQuery);
+    this.page.set(1);
+  }
+  // Cambio carburante o dimensione pagina: torna a pagina 1.
+  resetPage(): void {
+    this.page.set(1);
+  }
+  setPageSize(n: number): void {
+    this.pageSize.set(Number(n));
+    this.page.set(1);
+  }
+  prevPage(): void {
+    this.page.update((p) => Math.max(1, p - 1));
+  }
+  nextPage(): void {
+    this.page.update((p) => Math.min(this.totalPages(), p + 1));
   }
 
   priceOf(s: FuelStation, type: string): number | null {
