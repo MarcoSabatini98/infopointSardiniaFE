@@ -76,14 +76,18 @@ La base API è in `src/environments/environment.ts` (`apiBase`, default `http://
 - **Dashboard**: mappa Leaflet con selettore layer (meteo, incendi, voli, navi, traffico, eventi),
   marker a icona con popup di dettaglio, province cliccabili (outline) + toggle Globale/Provincia,
   pannello allerte + news (filtrate per provincia al click).
-- **Meteo**: ricerca per città + province, corrente dettagliata, orario 24h, previsioni fino a
-  14 giorni, avvisi derivati, **qualità aria + pollini**.
-- **Mare**: condizioni del mare per costa provinciale (onde, temperatura, periodo).
-- **Incendi**: pannello "guardia-fuochi" (severità FRP, provincia, satellite, stats).
+- **Meteo**: ricerca per città + province, corrente dettagliata, orario 24h (con **direzione
+  vento**), previsioni fino a 14 giorni, avvisi derivati, **qualità aria + pollini**.
+- **Incendi**: pannello "guardia-fuochi" (severità FRP, provincia, satellite, stats) con
+  spiegazioni all'hover su FRP/luminosità/confidenza/satellite.
 - **Traffico**: incidenti/code/chiusure con **comune** (reverse-geocoding), severità, ritardo.
 - **Voli**: "radar" con compagnia, fase volo (arrivo/partenza/transito), telemetria.
-- **Navi**: tipo imbarcazione, velocità (km/h + nodi), destinazione.
-- **Carburante**: prezzi MIMIT per impianto, filtri provincia/comune/tipo.
+- **Navi e mare**: traffico marittimo (tipo, velocità km/h + nodi, destinazione) + **condizioni
+  del mare** per provincia (onde, temperatura, periodo).
+- **Carburante**: prezzi MIMIT per impianto, filtri provincia/comune/tipo, **paginazione** (10/20/50).
+- **Piena fiumi**: portata dei fiumi (Open-Meteo Flood) per provincia, serie 7 giorni.
+- **Luoghi (POI)**: **ricerca per nome su tutta la Sardegna** (OSM) con **mappa interattiva** e
+  anteprima per ogni luogo; in alternativa sfoglia per provincia.
 - **News**: pagina in stile quotidiano. **Eventi**: card da SardegnaTurismo + dettaglio.
 - **Login + Gestione + Impostazioni**: CRUD eventi e settings per l'operatore admin (guard).
 
@@ -100,7 +104,7 @@ src/app/
 │   └── services/       # auth, session, events, map, feeds, settings
 ├── features/
 │   ├── dashboard/      # mappa + rail dati + selettore layer
-│   ├── weather/ marine/ fires/ traffic/ flights/ vessels/ fuel/ news/
+│   ├── weather/ fires/ traffic/ flights/ vessels/ fuel/ news/ flood/ poi/
 │   ├── events/         # lista + dettaglio eventi
 │   ├── login/
 │   └── admin/          # gestione eventi + impostazioni

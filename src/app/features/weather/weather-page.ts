@@ -11,6 +11,7 @@ interface HourRow {
   temp: number | null;
   icon: string;
   wind: number | null;
+  windDir: number | null;
   hum: number | null;
   pop: number | null;
 }
@@ -115,6 +116,7 @@ export class WeatherPage {
       temp: h.temperature_2m?.[i] ?? null,
       icon: weatherInfo(h.weather_code?.[i], 1).icon,
       wind: h.wind_speed_10m?.[i] ?? null,
+      windDir: h.wind_direction_10m?.[i] ?? null,
       hum: h.relative_humidity_2m?.[i] ?? null,
       pop: h.precipitation_probability?.[i] ?? null,
     }));

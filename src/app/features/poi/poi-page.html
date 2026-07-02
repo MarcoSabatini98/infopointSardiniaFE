@@ -1,0 +1,73 @@
+<section class="container">
+  <header class="ph">
+    <h1>📍 Luoghi d'interesse</h1>
+    <p class="muted sub">
+      Cerca un luogo per nome su tutta la Sardegna, oppure sfoglia per provincia. I risultati
+      compaiono sulla mappa qui sotto.
+    </p>
+  </header>
+
+  <div class="tools">
+    <form class="searchbar" (ngSubmit)="search()">
+      <input
+        class="input"
+        type="search"
+        name="q"
+        placeholder="Cerca un luogo (es. nuraghe, museo, spiaggia)…"
+        [(ngModel)]="query"
+      />
+      <button class="btn btn-primary" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Cerco…' : 'Cerca' }}
+      </button>
+    </form>
+
+    <select class="select" [(ngModel)]="tipo" (ngModelChange)="onTipoChange()">
+      @for (t of poiTypes; track t.value) {
+        <option [value]="t.value">{{ t.label }}</option>
+      }
+    </select>
+
+    <select class="select" [(ngModel)]="province" (ngModelChange)="browse()">
+      <option value="">Sfoglia provincia…</option>
+      @for (p of provinces; track p.code) {
+        <option [value]="p.code">{{ p.name }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="map" #mapEl></div>
+
+  @if (loading()) {
+    <p class="muted state">Ricerca in corso…</p>
+  } @else if (data() && !data()!.available) {
+    <p class="muted state">Sorgente non disponibile o ricerca troppo ampia. Riprova tra poco.</p>
+  } @else if (data()) {
+    <p class="muted count">{{ data()!.count }} luoghi trovati</p>
+    <div class="grid">
+      @for (p of data()!.items; track p.id) {
+        <article class="card poi">
+          <button class="preview" type="button" (click)="focus(p)" title="Mostra sulla mappa">
+            <img [src]="tilePreview(p)" alt="Anteprima mappa di {{ p.name }}" loading="lazy" />
+          </button>
+          <div class="body">
+            <div class="top">
+              <h2>{{ p.name }}</h2>
+              @if (p.kind) {
+                <span class="chip">{{ kindLabel(p.kind) }}</span>
+              }
+            </div>
+            <p class="coords muted">{{ p.lat.toFixed(4) }}, {{ p.lng.toFixed(4) }}</p>
+            <div class="actions">
+              <button class="link" type="button" (click)="focus(p)">Sulla mappa</button>
+              <a class="link" [href]="osmLink(p.id)" target="_blank" rel="noopener">OSM ↗</a>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  } @else if (searched()) {
+    <p class="muted state">Nessun risultato.</p>
+  } @else {
+    <p class="muted state">Cerca un luogo o scegli una provincia per iniziare.</p>
+  }
+</section>

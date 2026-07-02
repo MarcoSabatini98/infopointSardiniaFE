@@ -51,10 +51,17 @@ export class FiresPage {
     return PROVINCES.find((p) => p.code === code)?.name ?? '—';
   }
 
-  // FIRMS: acquired_at = "YYYY-MM-DD HHMM" → "YYYY-MM-DD HH:MM".
-  fmtWhen(s: string | null): string {
+  // acquired_at è un timestamp ISO (o data sola): formattato in ora locale.
+  fmtWhen(s: string | null | undefined): string {
     if (!s) return '—';
-    return s.replace(/\s(\d{2})(\d{2})$/, ' $1:$2');
+    const d = new Date(s);
+    if (isNaN(d.getTime())) return s;
+    return d.toLocaleString('it-IT', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
   round(v: number | null | undefined): string {

@@ -12,6 +12,7 @@ describe('VesselsPage', () => {
           provide: FeedsService,
           useValue: {
             vessels: () => of({ available: true, count: 0, vessels: [], stats: { by_type: {} } }),
+            marine: () => of([]),
           },
         },
       ],

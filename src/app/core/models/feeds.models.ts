@@ -273,3 +273,30 @@ export interface TrafficResponse {
   note?: string;
   error?: string;
 }
+
+// ── Piena fiumi (Open-Meteo Flood / GloFAS) ──
+export interface FloodResponse {
+  available: boolean;
+  coordinates: { lat: number; lng: number };
+  unit?: string;
+  today?: number | null;
+  max_7d?: number | null;
+  daily?: { time?: string[]; river_discharge?: (number | null)[] } | null;
+}
+
+// ── Punti d'interesse turistici (OSM Overpass) ──
+export interface Poi {
+  id: string;
+  name: string | null;
+  kind: string | null;
+  lat: number;
+  lng: number;
+}
+export interface PoiResponse {
+  available: boolean;
+  center?: { lat: number; lng: number };
+  radius_m?: number;
+  query?: string;
+  count: number;
+  items: Poi[];
+}

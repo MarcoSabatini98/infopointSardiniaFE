@@ -1,0 +1,40 @@
+<section class="container">
+  <header class="ph">
+    <h1>💧 Piena fiumi</h1>
+    <p class="muted">
+      Portata fluviale prevista (7 giorni) presso i capoluoghi (Open-Meteo Flood, modello GloFAS).
+    </p>
+  </header>
+
+  @if (loading()) {
+    <div class="grid">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <div class="card river"><div class="skeleton" style="height:8rem"></div></div>
+      }
+    </div>
+  } @else {
+    <div class="grid">
+      @for (c of items(); track c.code) {
+        <article class="card river">
+          <h2>{{ c.name }}</h2>
+          @if (c.data.available) {
+            <div class="big">
+              <span class="flow">{{ num(c.data.today) }}</span>
+              <span class="lbl muted">{{ c.data.unit || 'm³/s' }} · oggi</span>
+            </div>
+            <div class="spark" aria-hidden="true">
+              @for (v of c.data.daily?.river_discharge ?? []; track $index) {
+                <span class="bar" [style.height.%]="barH(v, c.data.max_7d)"></span>
+              }
+            </div>
+            <dl class="rows">
+              <div><dt>Picco 7 gg</dt><dd>{{ num(c.data.max_7d) }} {{ c.data.unit || 'm³/s' }}</dd></div>
+            </dl>
+          } @else {
+            <p class="muted state">Dati non disponibili al momento.</p>
+          }
+        </article>
+      }
+    </div>
+  }
+</section>

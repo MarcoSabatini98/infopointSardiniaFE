@@ -29,6 +29,16 @@ const SARDINIA_CENTER: L.LatLngTuple = [40.05, 9.05];
 const num = (v: number | null | undefined, suffix = '') =>
   v == null ? '–' : `${Math.round(v)}${suffix}`;
 
+// acquired_at (ISO o data) → "Rilevato: 2 lug 02:41".
+function fmtFireWhen(s: string | null | undefined): string {
+  if (!s) return '';
+  const d = new Date(s);
+  const when = isNaN(d.getTime())
+    ? s
+    : d.toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return `Rilevato: ${when}`;
+}
+
 function escapeHtml(s: string): string {
   return s.replace(
     /[&<>"']/g,
@@ -178,9 +188,11 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
           .subscribe((d: FiresResponse) => {
           d.fires.forEach((f) =>
             this.marker(f.lat, f.lng, def, [
-              [`Incendio · severità ${f.severity ?? 'n/d'}`, true],
-              [f.frp != null ? `Intensità ${Math.round(f.frp)} MW` : ''],
-              [f.acquired_at ? `Rilevato: ${f.acquired_at}` : ''],
+              [`🔥 Incendio · severità ${f.severity ?? 'n/d'}`, true],
+              [f.frp != null ? `Potenza ${Math.round(f.frp)} MW (intensità focolaio)` : ''],
+              [f.brightness != null ? `Brillanza ${Math.round(f.brightness)} K` : ''],
+              [f.confidence != null ? `Confidenza: ${f.confidence}` : ''],
+              [fmtFireWhen(f.acquired_at)],
               [`Fonte: ${f.source}`],
             ]),
           );

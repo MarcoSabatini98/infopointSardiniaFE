@@ -24,7 +24,7 @@
           </button>
         }
       </div>
-      <select class="select ftype" [(ngModel)]="fuelType">
+      <select class="select ftype" [(ngModel)]="fuelType" (ngModelChange)="resetPage()">
         @for (t of fuelTypes(); track t) {
           <option [value]="t">{{ t }}</option>
         }
@@ -38,7 +38,17 @@
       />
     </div>
 
-    <p class="muted count">{{ stations().length }} impianti (ordinati per prezzo {{ fuelType }})</p>
+    <div class="listbar">
+      <p class="muted count">{{ stations().length }} impianti (ordinati per prezzo {{ fuelType }})</p>
+      <label class="perpage muted">
+        Per pagina:
+        <select class="select" [ngModel]="pageSize()" (ngModelChange)="setPageSize($event)">
+          @for (n of pageSizes; track n) {
+            <option [value]="n">{{ n }}</option>
+          }
+        </select>
+      </label>
+    </div>
 
     <div class="card tablewrap">
       <table class="tbl">
@@ -52,7 +62,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (s of stations(); track s.id) {
+          @for (s of pageStations(); track s.id) {
             <tr>
               <td class="price">{{ priceText(s, fuelType) }}</td>
               <td><strong>{{ s.brand || s.name || '—' }}</strong></td>
@@ -68,5 +78,22 @@
         </tbody>
       </table>
     </div>
+
+    @if (totalPages() > 1) {
+      <nav class="pager">
+        <button class="btn btn-ghost" type="button" [disabled]="page() <= 1" (click)="prevPage()">
+          ← Precedente
+        </button>
+        <span class="muted">Pagina {{ page() }} di {{ totalPages() }}</span>
+        <button
+          class="btn btn-ghost"
+          type="button"
+          [disabled]="page() >= totalPages()"
+          (click)="nextPage()"
+        >
+          Successiva →
+        </button>
+      </nav>
+    }
   }
 </section>

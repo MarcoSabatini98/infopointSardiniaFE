@@ -7,11 +7,13 @@ import { ProvinceCode } from '../models/province.models';
 import {
   AirResponse,
   FiresResponse,
+  FloodResponse,
   FloodsResponse,
   FlightsResponse,
   FuelResponse,
   MarineProvince,
   NewsResponse,
+  PoiResponse,
   TrafficResponse,
   VesselsResponse,
   WeatherProvince,
@@ -89,5 +91,31 @@ export class FeedsService {
 
   fuel(): Observable<FuelResponse> {
     return this.http.get<ApiResponse<FuelResponse>>(`${this.base}/fuel`).pipe(map((r) => r.data));
+  }
+
+  // Piena fiumi per provincia (il BE risponde su singola provincia/coordinate).
+  flood(provincia: ProvinceCode): Observable<FloodResponse> {
+    const params = new HttpParams().set('provincia', provincia);
+    return this.http
+      .get<ApiResponse<FloodResponse>>(`${this.base}/flood`, { params })
+      .pipe(map((r) => r.data));
+  }
+
+  // POI turistici nei dintorni del capoluogo di provincia (filtro opzionale ?tipo=).
+  poi(provincia: ProvinceCode, tipo?: string): Observable<PoiResponse> {
+    let params = new HttpParams().set('provincia', provincia);
+    if (tipo) params = params.set('tipo', tipo);
+    return this.http
+      .get<ApiResponse<PoiResponse>>(`${this.base}/poi`, { params })
+      .pipe(map((r) => r.data));
+  }
+
+  // Ricerca POI per nome su tutta la Sardegna (filtro opzionale ?tipo=).
+  searchPoi(q: string, tipo?: string): Observable<PoiResponse> {
+    let params = new HttpParams().set('q', q);
+    if (tipo) params = params.set('tipo', tipo);
+    return this.http
+      .get<ApiResponse<PoiResponse>>(`${this.base}/poi/search`, { params })
+      .pipe(map((r) => r.data));
   }
 }

@@ -1,4 +1,30 @@
 <section class="container">
+  @if (marine().length) {
+    <section class="marine-block">
+      <header class="ph">
+        <h1>🌊 Mare e spiagge</h1>
+        <p class="muted">Condizioni del mare lungo le coste sarde (Open-Meteo Marine).</p>
+      </header>
+      <div class="grid">
+        @for (m of marine(); track m.province.code) {
+          <article class="card sea">
+            <h2>{{ m.province.name }}</h2>
+            <div class="big">
+              <span class="wave">{{ round(m.current?.wave_height) }} m</span>
+              <span class="lbl muted">altezza onde</span>
+            </div>
+            <dl class="rows">
+              <div><dt>Mare</dt><dd>{{ round1(m.current?.sea_surface_temperature) }}°C</dd></div>
+              <div><dt>Periodo onda</dt><dd>{{ round(m.current?.wave_period) }} s</dd></div>
+              <div><dt>Direzione</dt><dd>{{ dir(m.current?.wave_direction) }}</dd></div>
+              <div><dt>Max oggi</dt><dd>{{ round1(m.daily?.wave_height_max?.[0]) }} m</dd></div>
+            </dl>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
   <header class="ph">
     <h1>⛴️ Traffico marittimo</h1>
     <p class="muted sub">
