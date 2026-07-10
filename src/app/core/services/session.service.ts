@@ -26,11 +26,6 @@ export class SessionService {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   }
 
-  setAccessToken(accessToken: string): void {
-    this._accessToken.set(accessToken);
-    localStorage.setItem(TOKEN_KEY, accessToken);
-  }
-
   clear(): void {
     this._accessToken.set(null);
     this._user.set(null);
