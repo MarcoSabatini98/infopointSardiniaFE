@@ -12,6 +12,7 @@ import * as L from 'leaflet';
 import { FeedsService } from '../../core/services/feeds.service';
 import { Poi, PoiResponse } from '../../core/models/feeds.models';
 import { PROVINCES, ProvinceCode } from '../../core/models/province.models';
+import { escapeHtml, pin } from '../../core/util/map-marker';
 
 // Allineato all'enum ?tipo= del backend (+ "" = tutti).
 const POI_TYPES: { value: string; label: string }[] = [
@@ -44,25 +45,6 @@ const KIND_LABELS: Record<string, string> = {
 };
 
 const SARDINIA_CENTER: L.LatLngTuple = [40.05, 9.05];
-
-function escapeHtml(s: string): string {
-  return s.replace(
-    /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string,
-  );
-}
-
-// Marker a goccia bianca bordata (evita gli asset Leaflet mancanti).
-function pin(): L.DivIcon {
-  const size = 30;
-  return L.divIcon({
-    className: '',
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;display:grid;place-items:center;background:#fff;border:2px solid #0b6e75;box-shadow:0 1px 5px rgba(20,30,30,.35);font-size:15px;line-height:1;">📍</div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2 - 2],
-  });
-}
 
 @Component({
   selector: 'app-poi-page',
