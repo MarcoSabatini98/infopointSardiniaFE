@@ -2,7 +2,7 @@
   margin-bottom: 1rem;
 }
 .ph h1 {
-  font-size: var(--text-2xl);
+  font-size: clamp(var(--text-xl), 4.5vw, var(--text-2xl));
 }
 .sub {
   margin: 0.3rem 0 0;

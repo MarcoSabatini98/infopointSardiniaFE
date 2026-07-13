@@ -307,3 +307,34 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 640px) {
+  .ph h1 {
+    font-size: var(--text-xl);
+  }
+  /* Searchbar a tutta larghezza sotto il titolo */
+  .searchbar {
+    min-width: 0;
+    max-width: none;
+    flex-basis: 100%;
+  }
+  .now {
+    padding: 1.1rem;
+  }
+  .now-temp {
+    font-size: 3.2rem;
+  }
+  .now-ic {
+    font-size: 2.4rem;
+  }
+  /* Riga giorno essenziale su telefono: giorno · icona · pioggia · temperatura
+     (nascondo etichetta testuale e vento, che stritolavano la riga a 6 colonne) */
+  .day {
+    grid-template-columns: 1fr auto auto auto;
+    gap: 0.5rem;
+  }
+  .dlabel,
+  .dwind {
+    display: none;
+  }
+}
