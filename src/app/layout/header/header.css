@@ -1,3 +1,12 @@
+/* La sticky sta sull'host, non su .hdr: il contenitore di .hdr sarebbe alto
+   solo quanto la navbar e la lascerebbe scrollare via. L'host è figlio di
+   app-root (alto quanto l'intera pagina), quindi resta incollato allo scroll. */
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
 .hdr {
   display: flex;
   align-items: center;
@@ -6,9 +15,6 @@
   background: oklch(1 0 0 / 0.85);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-sticky);
 }
 .brand {
   display: flex;
