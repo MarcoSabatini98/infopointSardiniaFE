@@ -21,6 +21,8 @@
   align-items: center;
   margin-top: 7px;
   gap: 0.35rem;
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
@@ -28,6 +30,7 @@
   color: var(--ok);
 }
 .live .dot {
+  flex-shrink: 0;
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
@@ -112,6 +115,9 @@
   min-height: 460px;
   padding: 0;
   overflow: hidden;
+  /* Contiene gli z-index interni di Leaflet (controlli fino a 1000): senza,
+     la mappa scavalcava la navbar sticky (z-index 100) allo scroll. */
+  isolation: isolate;
 }
 
 /* Rail */
@@ -338,5 +344,27 @@
   }
   .map-col {
     height: 62vh;
+  }
+}
+
+/* Ritocchi da telefono */
+@media (max-width: 640px) {
+  .title {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .title h1 {
+    font-size: var(--text-xl);
+  }
+  /* Più respiro tra i tag layer e la mappa */
+  .layerbar {
+    margin-bottom: 1rem;
+  }
+  /* "Ultime notizie" (e notizie provincia) chiuse in un box scrollabile
+     così la sezione non allunga la pagina all'infinito */
+  .news {
+    max-height: 15rem;
+    overflow-y: auto;
+    padding-right: 0.3rem;
   }
 }

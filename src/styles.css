@@ -70,6 +70,12 @@ body {
   margin: 0;
   height: 100%;
 }
+/* app-root è un custom element (default display:inline): senza questo non fa da
+   contenitore a blocco e la navbar sticky risale a body (alto solo il viewport),
+   scrollando via. Da block, la sticky resta incollata per tutta la pagina. */
+app-root {
+  display: block;
+}
 body {
   background: var(--bg);
   color: var(--ink);
