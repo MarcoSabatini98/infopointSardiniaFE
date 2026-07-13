@@ -14,6 +14,7 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
+  flex-shrink: 0;
   color: var(--ink);
   font-size: var(--text-md);
   font-weight: 700;
@@ -25,6 +26,7 @@
 .mark {
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   width: 1.7rem;
   height: 1.7rem;
   border-radius: 8px;
@@ -81,8 +83,69 @@
   font-weight: 600;
   font-size: var(--text-sm);
 }
+/* Hamburger: nascosto su desktop, mostrato via media query su mobile. */
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.hamburger:hover {
+  background: var(--surface-2);
+}
 @media (max-width: 640px) {
   .who {
     display: none;
+  }
+}
+
+/* Da telefono: in alto restano logo + hamburger + Accedi/Esci. Le sezioni
+   compaiono come pannello verticale a tutta larghezza solo a menu aperto
+   (in flusso, così non litiga con lo z-index della mappa). */
+@media (max-width: 768px) {
+  .hamburger {
+    display: inline-flex;
+  }
+  .actions {
+    order: 2;
+  }
+  .nav {
+    order: 3;
+    flex-basis: 100%;
+    display: none;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin-left: 0;
+    overflow: visible;
+    padding-top: 0.5rem;
+    margin-top: 0.1rem;
+    border-top: 1px solid var(--line);
+  }
+  .hdr.menu-open {
+    flex-wrap: wrap;
+    row-gap: 0.55rem;
+  }
+  .hdr.menu-open .nav {
+    display: flex;
+  }
+  .nav a {
+    padding: 0.7rem 0.6rem;
+    font-size: var(--text-base);
+  }
+  /* Logo più presente sul piccolo */
+  .mark {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.9rem;
+  }
+  .brand {
+    font-size: var(--text-lg);
   }
 }
