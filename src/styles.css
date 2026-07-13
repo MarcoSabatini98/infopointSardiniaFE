@@ -206,6 +206,11 @@ a:hover {
   margin: 0 auto;
   padding: 1.25rem;
 }
+@media (max-width: 640px) {
+  .container {
+    padding: 1rem 0.9rem;
+  }
+}
 
 /* ── Skeleton (loading) ───────────────────────────────────── */
 .skeleton {

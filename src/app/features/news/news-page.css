@@ -168,3 +168,15 @@
     padding-top: 1rem;
   }
 }
+
+@media (max-width: 640px) {
+  .paper {
+    padding: 1rem 0.9rem 2rem;
+  }
+  /* Colonna singola su telefono: le notizie scorrono in ordine dall'alto,
+     niente più salti di lettura tipici del layout a colonne. */
+  .columns {
+    column-width: auto;
+    columns: 1;
+  }
+}

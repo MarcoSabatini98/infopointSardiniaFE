@@ -174,3 +174,27 @@
   font-family: ui-monospace, monospace;
   font-size: var(--text-xs);
 }
+
+@media (max-width: 640px) {
+  .ph h1 {
+    font-size: var(--text-xl);
+  }
+  /* Mare e spiagge: card dati 2 per riga, più compatte */
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .sea {
+    padding: 0.8rem;
+  }
+  .sea h2 {
+    font-size: var(--text-md);
+  }
+  .wave {
+    font-size: 1.9rem;
+  }
+  .kpi {
+    min-width: 0;
+    flex: 1;
+  }
+}
