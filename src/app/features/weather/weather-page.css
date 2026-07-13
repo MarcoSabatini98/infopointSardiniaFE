@@ -1,3 +1,9 @@
+/* Il componente non deve mai superare la larghezza del viewport: clip di
+   sicurezza contro sfori orizzontali (lo scroller 24h scorre da solo dentro). */
+:host {
+  display: block;
+  overflow-x: hidden;
+}
 .ph {
   display: flex;
   align-items: center;
@@ -48,6 +54,12 @@
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 1rem;
   align-items: start;
+}
+/* Grid item devono poter stringersi: senza min-width:0 il contenuto largo
+   (scroller ore, righe giorni) forza la colonna oltre il viewport → sfori. */
+.main,
+.side {
+  min-width: 0;
 }
 .block {
   padding: 1rem 1.1rem;
