@@ -1,10 +1,10 @@
-<header class="hdr">
-  <a routerLink="/" class="brand">
+<header class="hdr" [class.menu-open]="menuOpen()">
+  <a routerLink="/" class="brand" (click)="closeMenu()">
     <span class="mark" aria-hidden="true">iS</span>
     <span class="name">infopoint <strong>Sardegna</strong></span>
   </a>
 
-  <nav class="nav">
+  <nav class="nav" id="main-nav" (click)="closeMenu()">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
       Dashboard
     </a>
@@ -25,11 +25,51 @@
   </nav>
 
   <div class="actions">
+    <button
+      class="hamburger"
+      type="button"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="main-nav"
+      aria-label="Menu sezioni"
+    >
+      @if (menuOpen()) {
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      } @else {
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      }
+    </button>
+
     @if (session.isAuthenticated()) {
       <span class="muted who">{{ session.user()?.nome }}</span>
       <button class="btn btn-ghost" type="button" (click)="logout()">Esci</button>
     } @else {
-      <a routerLink="/login" class="btn btn-primary">Accedi</a>
+      <a routerLink="/login" class="btn btn-primary" (click)="closeMenu()">Accedi</a>
     }
   </div>
 </header>
