@@ -211,6 +211,12 @@ a:hover {
     padding: 1rem 0.9rem;
   }
 }
+/* Ogni mappa Leaflet isola il proprio stacking context: i suoi z-index interni
+   (controlli fino a 1000) restano contenuti e non scavalcano la navbar sticky.
+   Fix globale, vale per dashboard, luoghi e ogni mappa futura. */
+.leaflet-container {
+  isolation: isolate;
+}
 
 /* ── Skeleton (loading) ───────────────────────────────────── */
 .skeleton {

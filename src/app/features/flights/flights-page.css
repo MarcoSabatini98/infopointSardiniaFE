@@ -152,3 +152,17 @@
   display: block;
   font-size: var(--text-xs);
 }
+
+@media (max-width: 640px) {
+  /* 4 KPI in griglia 2×2, contenuto centrato */
+  .kpis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .kpi {
+    min-width: 0;
+    align-items: center;
+    text-align: center;
+  }
+}

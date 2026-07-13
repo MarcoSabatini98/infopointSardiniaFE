@@ -327,6 +327,9 @@
   .now-ic {
     font-size: 2.4rem;
   }
+  .now-grid {
+    grid-template-columns: 1fr 1fr;
+  }
   /* Riga giorno essenziale su telefono: giorno · icona · pioggia · temperatura
      (nascondo etichetta testuale e vento, che stritolavano la riga a 6 colonne) */
   .day {
