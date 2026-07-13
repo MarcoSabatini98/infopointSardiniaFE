@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://SOSTITUISCI-COL-TUO-BE.onrender.com/api/:path*"
+      "destination": "https://infopoint-sardinia-be.onrender.com/api/:path*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
