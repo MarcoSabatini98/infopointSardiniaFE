@@ -1,0 +1,81 @@
+<section class="container">
+  <header class="ph">
+    <h1>🚧 Traffico stradale</h1>
+    <p class="muted sub">
+      Incidenti, cantieri, code e chiusure sulle strade sarde (TomTom).
+      Località rilevata per le segnalazioni principali.
+    </p>
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Caricamento…</p>
+  } @else if (!data()?.available || data()!.count === 0) {
+    <div class="card calm">
+      <span class="ok-ic">✅</span>
+      <div>
+        <strong>Nessuna segnalazione</strong>
+        <p class="muted">Nessun evento di traffico rilevato in Sardegna al momento.</p>
+      </div>
+    </div>
+  } @else {
+    <!-- KPI -->
+    <div class="kpis">
+      <div class="kpi">
+        <span class="kn">{{ data()!.count }}</span>
+        <span class="kl">segnalazioni</span>
+      </div>
+      <div class="kpi sev">
+        @for (s of severityChips(); track s.key) {
+          <span class="sev-chip" [attr.data-sev]="s.key">{{ s.key }} · {{ s.n }}</span>
+        }
+      </div>
+    </div>
+
+    <!-- Filtro provincia -->
+    <div class="filters">
+      <button class="fbtn" [class.on]="filter() === 'all'" (click)="setFilter('all')">
+        Tutte ({{ data()!.count }})
+      </button>
+      @for (p of provinces; track p.code) {
+        @if (provinceCount(p.code) > 0) {
+          <button class="fbtn" [class.on]="filter() === p.code" (click)="setFilter(p.code)">
+            {{ p.name }} ({{ provinceCount(p.code) }})
+          </button>
+        }
+      }
+    </div>
+
+    <!-- Lista -->
+    <div class="card tablewrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Severità</th>
+            <th>Comune</th>
+            <th>Tipo</th>
+            <th>Strada</th>
+            <th>Tratto</th>
+            <th>Ritardo</th>
+            <th>Lungh.</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (i of incidents(); track i.id ?? $index) {
+            <tr>
+              <td><span class="sev" [attr.data-sev]="i.severity">{{ i.severity }}</span></td>
+              <td>
+                <strong>{{ i.comune || '—' }}</strong>
+                <span class="prov muted">{{ provinceName(i.province_code) }}</span>
+              </td>
+              <td>{{ i.description || i.category }}</td>
+              <td>{{ i.road_numbers?.length ? i.road_numbers!.join(', ') : '—' }}</td>
+              <td class="tratto">{{ tratto(i) }}</td>
+              <td>{{ delayText(i.delay_s) }}</td>
+              <td>{{ lengthText(i.length_m) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

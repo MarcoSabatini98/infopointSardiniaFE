@@ -1,0 +1,32 @@
+.wrap {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 1.25rem;
+}
+.box {
+  width: 100%;
+  max-width: 380px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.box h1 {
+  font-size: 1.6rem;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.err {
+  color: var(--danger);
+  font-weight: 600;
+  margin: 0;
+}
+.btn-primary {
+  margin-top: 0.4rem;
+  justify-content: center;
+}

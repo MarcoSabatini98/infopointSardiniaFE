@@ -1,0 +1,81 @@
+<section class="container">
+  <header class="ph">
+    <h1>✈️ Radar voli</h1>
+    <p class="muted sub">
+      Aerei in volo sopra e intorno alla Sardegna (OpenSky). Compagnia dedotta dal callsign;
+      fase di volo relativa agli aeroporti sardi (Cagliari, Olbia, Alghero).
+    </p>
+  </header>
+
+  @if (loading()) {
+    <p class="muted">Caricamento…</p>
+  } @else if (!data()?.available || data()!.count === 0) {
+    <p class="muted state">Nessun aereo rilevato nell'area al momento.</p>
+  } @else {
+    <!-- KPI -->
+    <div class="kpis">
+      <div class="kpi"><span class="kn">{{ data()!.count }}</span><span class="kl">in volo</span></div>
+      <div class="kpi arr"><span class="kn">{{ arrivi() }}</span><span class="kl">in arrivo</span></div>
+      <div class="kpi dep"><span class="kn">{{ partenze() }}</span><span class="kl">in partenza</span></div>
+      <div class="kpi"><span class="kn">{{ transito() }}</span><span class="kl">in transito</span></div>
+    </div>
+
+    <!-- Compagnie -->
+    @if (airlineChips().length) {
+      <div class="airlines">
+        @for (a of airlineChips(); track a.name) {
+          <span class="al-chip">{{ a.name }} · {{ a.n }}</span>
+        }
+      </div>
+    }
+
+    <!-- Filtro fase -->
+    <div class="filters">
+      <button class="fbtn" [class.on]="filter() === 'all'" (click)="setFilter('all')">
+        Tutti ({{ data()!.count }})
+      </button>
+      @for (s of phaseChips(); track s.key) {
+        <button class="fbtn" [class.on]="filter() === s.key" (click)="setFilter(s.key)">
+          {{ s.key }} ({{ s.n }})
+        </button>
+      }
+    </div>
+
+    <!-- Tabella radar -->
+    <div class="card tablewrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Volo</th>
+            <th>Compagnia</th>
+            <th>Fase</th>
+            <th>Quota</th>
+            <th>Velocità</th>
+            <th>Andamento</th>
+            <th>Paese</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of flights(); track f.icao24) {
+            <tr>
+              <td class="radar">
+                <span class="plane" [style.transform]="'rotate(' + heading(f.true_track) + 'deg)'">✈</span>
+              </td>
+              <td><strong>{{ f.callsign || f.icao24 }}</strong></td>
+              <td>{{ f.airline || '—' }}</td>
+              <td>
+                <span class="phase" [attr.data-p]="f.phase">{{ f.phase }}</span>
+                @if (f.airport) { <span class="ap muted">{{ f.airport }}</span> }
+              </td>
+              <td>{{ alt(f.geo_altitude) }}</td>
+              <td>{{ kmh(f.velocity) }}</td>
+              <td class="muted">{{ vrate(f.vertical_rate) }}</td>
+              <td class="muted">{{ f.origin_country || '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

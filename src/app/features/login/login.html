@@ -1,0 +1,23 @@
+<section class="wrap">
+  <form class="card box" (ngSubmit)="submit()">
+    <h1>Accedi</h1>
+    <p class="muted">Area riservata agli operatori.</p>
+
+    <label>
+      <span>Email</span>
+      <input class="input" type="email" name="email" [(ngModel)]="email" required />
+    </label>
+    <label>
+      <span>Password</span>
+      <input class="input" type="password" name="password" [(ngModel)]="password" required />
+    </label>
+
+    @if (error()) {
+      <p class="err">{{ error() }}</p>
+    }
+
+    <button class="btn btn-primary" type="submit" [disabled]="loading()">
+      {{ loading() ? 'Accesso…' : 'Accedi' }}
+    </button>
+  </form>
+</section>

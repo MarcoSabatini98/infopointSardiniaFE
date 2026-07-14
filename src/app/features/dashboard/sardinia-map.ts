@@ -1,0 +1,305 @@
+import {
+  AfterViewInit,
+  Component,
+  DestroyRef,
+  ElementRef,
+  OnDestroy,
+  effect,
+  inject,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import * as L from 'leaflet';
+import { FeedsService } from '../../core/services/feeds.service';
+import { MapService } from '../../core/services/map.service';
+import { ProvinceCode } from '../../core/models/province.models';
+import {
+  FiresResponse,
+  FlightsResponse,
+  TrafficResponse,
+  VesselsResponse,
+  WeatherProvince,
+} from '../../core/models/feeds.models';
+import { MapEvent } from '../../core/models/event.models';
+import { GeoLayer, LAYERS, weatherInfo, windDir } from './map-layers';
+import { escapeHtml, pin } from '../../core/util/map-marker';
+
+const SARDINIA_CENTER: L.LatLngTuple = [40.05, 9.05];
+const num = (v: number | null | undefined, suffix = '') =>
+  v == null ? '–' : `${Math.round(v)}${suffix}`;
+
+// acquired_at (ISO o data) → "Rilevato: 2 lug 02:41".
+function fmtFireWhen(s: string | null | undefined): string {
+  if (!s) return '';
+  const d = new Date(s);
+  const when = isNaN(d.getTime())
+    ? s
+    : d.toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return `Rilevato: ${when}`;
+}
+
+@Component({
+  selector: 'app-sardinia-map',
+  template: `<div class="map" #mapEl></div>`,
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100%;
+      }
+      .map {
+        height: 100%;
+        min-height: 460px;
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+    `,
+  ],
+})
+export class SardiniaMap implements AfterViewInit, OnDestroy {
+  private readonly feeds = inject(FeedsService);
+  private readonly mapService = inject(MapService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  // Layer attivo + provincia selezionata, controllati dal dashboard.
+  readonly layer = input<GeoLayer>('weather');
+  readonly selected = input<ProvinceCode | null>(null);
+  readonly provinceSelected = output<ProvinceCode>();
+  readonly layerStats = output<{ count: number | null; loading: boolean }>();
+
+  private readonly mapEl = viewChild.required<ElementRef<HTMLDivElement>>('mapEl');
+  private map!: L.Map;
+  private provinceLayer = L.layerGroup();
+  private dataLayer = L.layerGroup();
+  private geoLayer?: L.GeoJSON;
+  private ready = false;
+
+  constructor() {
+    // Reagisce ai cambi di layer dal selettore (dopo che la mappa è pronta).
+    effect(() => {
+      const l = this.layer();
+      if (this.ready) this.loadLayer(l);
+    });
+    // Ristila i poligoni quando cambia la provincia selezionata (dal toggle o
+    // dal click sulla mappa).
+    effect(() => {
+      this.selected();
+      if (this.ready) this.geoLayer?.setStyle((f) => this.provinceStyle(f?.properties?.['code']));
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.map = L.map(this.mapEl().nativeElement, { center: SARDINIA_CENTER, zoom: 8 });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      maxZoom: 18,
+    }).addTo(this.map);
+    this.provinceLayer.addTo(this.map);
+    this.dataLayer.addTo(this.map);
+    this.ready = true;
+    this.loadProvinces();
+    this.loadLayer(this.layer());
+  }
+
+  ngOnDestroy(): void {
+    this.map?.remove();
+  }
+
+  // ── Province: outline discreto, cliccabile ──────────────────
+  private loadProvinces(): void {
+    this.mapService
+      .geojson()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((fc) => {
+      this.geoLayer = L.geoJSON(fc, {
+        style: (f) => this.provinceStyle(f?.properties?.['code']),
+        onEachFeature: (feature, lyr) => {
+          const code = feature.properties?.['code'] as ProvinceCode;
+          const name = feature.properties?.['name'] as string;
+          lyr.bindTooltip(name, { sticky: true });
+          lyr.on('click', () => this.provinceSelected.emit(code));
+          lyr.on('mouseover', () => {
+            if (code !== this.selected()) (lyr as L.Path).setStyle({ fillOpacity: 0.15 });
+          });
+          lyr.on('mouseout', () => {
+            if (code !== this.selected()) (lyr as L.Path).setStyle(this.provinceStyle(code));
+          });
+        },
+      }).addTo(this.provinceLayer);
+      const bounds = this.geoLayer.getBounds();
+      if (bounds.isValid()) this.map.fitBounds(bounds, { padding: [20, 20] });
+    });
+  }
+
+  private provinceStyle(code?: string): L.PathOptions {
+    const isSel = code === this.selected();
+    return {
+      color: isSel ? '#c1502e' : '#0b6e75',
+      weight: isSel ? 2.5 : 1,
+      fillColor: isSel ? '#c1502e' : '#0b6e75',
+      fillOpacity: isSel ? 0.14 : 0.04,
+    };
+  }
+
+  // ── Layer dati: marker a icona per tipo ─────────────────────
+  private loadLayer(layer: GeoLayer): void {
+    if (!this.map) return;
+    this.layerStats.emit({ count: null, loading: true });
+    this.dataLayer.clearLayers();
+    const def = LAYERS.find((l) => l.id === layer)!;
+    const done = (n: number) => this.layerStats.emit({ count: n, loading: false });
+
+    switch (layer) {
+      case 'weather':
+        this.feeds
+          .weather()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d) => {
+          const arr = (Array.isArray(d) ? d : [d]) as WeatherProvince[];
+          arr.forEach((w) => this.weatherMarker(w));
+          done(arr.length);
+        });
+        break;
+      case 'fires':
+        this.feeds
+          .fires()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d: FiresResponse) => {
+          d.fires.forEach((f) =>
+            this.marker(f.lat, f.lng, def, [
+              [`🔥 Incendio · severità ${f.severity ?? 'n/d'}`, true],
+              [f.frp != null ? `Potenza ${Math.round(f.frp)} MW (intensità focolaio)` : ''],
+              [f.brightness != null ? `Brillanza ${Math.round(f.brightness)} K` : ''],
+              [f.confidence != null ? `Confidenza: ${f.confidence}` : ''],
+              [fmtFireWhen(f.acquired_at)],
+              [`Fonte: ${f.source}`],
+            ]),
+          );
+          done(d.count);
+        });
+        break;
+      case 'flights':
+        this.feeds
+          .flights()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d: FlightsResponse) => {
+          d.flights.forEach((f) =>
+            this.marker(f.lat, f.lng, def, [
+              [`${f.callsign || f.icao24}${f.airline ? ' · ' + f.airline : ''}`, true],
+              [f.phase ? `${f.phase}${f.airport ? ' · ' + f.airport : ''}` : ''],
+              [`Quota ${num(f.geo_altitude, ' m')} · ${num(f.velocity, ' m/s')}`],
+              [f.origin_country ?? ''],
+            ]),
+          );
+          done(d.count);
+        });
+        break;
+      case 'vessels':
+        this.feeds
+          .vessels()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d: VesselsResponse) => {
+          d.vessels.forEach((v) =>
+            this.marker(v.lat, v.lng, def, [
+              [`${v.name || 'MMSI ' + v.mmsi}${v.type_label ? ' · ' + v.type_label : ''}`, true],
+              [v.sog != null ? `Velocità ${Math.round(v.sog * 1.852)} km/h (${v.sog} kn)` : ''],
+              [v.destination ? `Destinazione: ${v.destination}` : ''],
+              [v.cog != null ? `Rotta ${Math.round(v.cog)}°` : ''],
+            ]),
+          );
+          done(d.count);
+        });
+        break;
+      case 'traffic':
+        this.feeds
+          .traffic()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d: TrafficResponse) => {
+          d.incidents.forEach((i) => {
+            const lat = i.lat ?? firstCoord(i.geometry)?.[1] ?? null;
+            const lng = i.lng ?? firstCoord(i.geometry)?.[0] ?? null;
+            const delayMin = i.delay_s != null && i.delay_s > 0 ? Math.round(i.delay_s / 60) : null;
+            const tratto = i.from && i.to ? `${i.from} → ${i.to}` : i.from || i.to || '';
+            this.marker(lat, lng, def, [
+              [`${i.severity} · ${i.comune ?? i.category}`, true],
+              [i.description ?? ''],
+              [i.road_numbers?.length ? `Strada: ${i.road_numbers.join(', ')}` : ''],
+              [tratto],
+              [delayMin ? `Ritardo +${delayMin} min` : ''],
+            ]);
+          });
+          done(d.count);
+        });
+        break;
+      case 'events':
+        this.mapService
+          .layer<{ count: number; events: MapEvent[] }>('events')
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe((d) => {
+          (d.events ?? []).forEach((e) =>
+            this.marker(e.lat, e.lng, def, [
+              [e.title, true],
+              [`${e.category}${e.comune ? ' · ' + e.comune : ''}`],
+              [e.date ? `${e.date}` : ''],
+              [e.source ? `Fonte: ${e.source}` : ''],
+            ]),
+          );
+          done(d.events?.length ?? 0);
+        });
+        break;
+    }
+  }
+
+  // Marker generico a icona con popup multi-riga ([testo, bold?]).
+  private marker(
+    lat: number | null,
+    lng: number | null,
+    def: { icon: string; color: string },
+    lines: [string, boolean?][],
+  ): void {
+    if (lat == null || lng == null) return;
+    const html = lines
+      .filter(([t]) => t)
+      .map(([t, bold]) => (bold ? `<strong>${escapeHtml(t)}</strong>` : escapeHtml(t)))
+      .join('<br>');
+    L.marker([lat, lng], { icon: pin(def.icon, def.color) })
+      .bindPopup(html)
+      .addTo(this.dataLayer);
+  }
+
+  private weatherMarker(w: WeatherProvince): void {
+    if (!w.coordinates) return;
+    const def = LAYERS.find((l) => l.id === 'weather')!;
+    const c = w.current;
+    const wi = weatherInfo(c?.weather_code, c?.is_day);
+    const min = w.daily?.temperature_2m_min?.[0];
+    const max = w.daily?.temperature_2m_max?.[0];
+    const html = [
+      `<strong>${escapeHtml(w.province?.name ?? w.location?.name ?? '')}</strong>`,
+      `${wi.icon} ${wi.label}`,
+      `🌡️ ${num(c?.temperature_2m, '°')} (perc. ${num(c?.apparent_temperature, '°')})`,
+      `💧 ${num(c?.relative_humidity_2m, '%')} · 💨 ${num(c?.wind_speed_10m, ' km/h')} ${windDir(c?.wind_direction_10m)}`,
+      min != null || max != null ? `Oggi ${num(min, '°')} / ${num(max, '°')}` : '',
+      c?.precipitation ? `Precip. ${c.precipitation} mm` : '',
+    ]
+      .filter(Boolean)
+      .join('<br>');
+    // Icona meteo dinamica (per codice) invece dell'emoji generica del layer.
+    L.marker([w.coordinates.lat, w.coordinates.lng], { icon: pin(wi.icon, def.color) })
+      .bindPopup(html)
+      .addTo(this.dataLayer);
+  }
+}
+
+// Coordinata rappresentativa [lng,lat] da una geometria GeoJSON.
+function firstCoord(geometry: unknown): [number, number] | null {
+  const g = geometry as { coordinates?: unknown } | null;
+  if (!g || !g.coordinates) return null;
+  let c: unknown = g.coordinates;
+  while (Array.isArray(c) && Array.isArray(c[0])) c = c[0];
+  return Array.isArray(c) && typeof c[0] === 'number' && typeof c[1] === 'number'
+    ? [c[0], c[1]]
+    : null;
+}

@@ -1,0 +1,59 @@
+<section class="paper">
+  <!-- Testata -->
+  <header class="masthead">
+    <div class="rule"></div>
+    <h1 class="title">La Cronaca Sarda</h1>
+    <div class="dateline">
+      <span>infopoint Sardegna</span>
+      <span>{{ today | date: 'EEEE d MMMM yyyy' }}</span>
+      <span>Edizione digitale</span>
+    </div>
+    <div class="rule thick"></div>
+  </header>
+
+  @if (loading()) {
+    <p class="muted load">Caricamento edizione…</p>
+  } @else if (items().length === 0) {
+    <p class="muted load">Nessuna notizia disponibile.</p>
+  } @else {
+    <!-- Apertura -->
+    <div class="top">
+      @if (lead(); as l) {
+        <a class="lead" [href]="l.link" target="_blank" rel="noopener">
+          <span class="kicker">{{ l.source }}</span>
+          <h2 class="lead-title">{{ l.title }}</h2>
+          @if (l.summary) {
+            <p class="lead-sum">{{ l.summary }}</p>
+          }
+          <span class="byline muted">{{ l.published_at | date: 'd MMM, HH:mm' }}</span>
+        </a>
+      }
+
+      <aside class="spalla">
+        @for (s of secondary(); track s.link) {
+          <a class="sec" [href]="s.link" target="_blank" rel="noopener">
+            <span class="kicker">{{ s.source }}</span>
+            <h3>{{ s.title }}</h3>
+            <span class="byline muted">{{ s.published_at | date: 'd MMM' }}</span>
+          </a>
+        }
+      </aside>
+    </div>
+
+    <!-- Corpo a colonne -->
+    <div class="columns">
+      @for (n of rest(); track n.link) {
+        <article class="art">
+          <span class="kicker">{{ n.source }}</span>
+          <h3 class="art-title">
+            <a [href]="n.link" target="_blank" rel="noopener">{{ n.title }}</a>
+          </h3>
+          @if (n.summary) {
+            <p class="art-sum">{{ n.summary }}</p>
+          }
+          <span class="byline muted">{{ n.published_at | date: 'd MMM, HH:mm' }}</span>
+        </article>
+      }
+    </div>
+  }
+</section>
