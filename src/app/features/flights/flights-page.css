@@ -152,6 +152,10 @@
   display: block;
   font-size: var(--text-xs);
 }
+.mono {
+  font-family: ui-monospace, monospace;
+  font-size: var(--text-xs);
+}
 
 @media (max-width: 640px) {
   /* 4 KPI in griglia 2×2, contenuto centrato */

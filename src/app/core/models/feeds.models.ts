@@ -136,6 +136,8 @@ export interface Flight {
   callsign: string | null;
   flight?: string | null;
   airline?: string | null;
+  aircraft_type?: string | null;
+  registration?: string | null;
   origin_country: string | null;
   lat: number | null;
   lng: number | null;

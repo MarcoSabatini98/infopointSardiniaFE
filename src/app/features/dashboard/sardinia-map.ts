@@ -188,6 +188,7 @@ export class SardiniaMap implements AfterViewInit, OnDestroy {
           d.flights.forEach((f) =>
             this.marker(f.lat, f.lng, def, [
               [`${f.callsign || f.icao24}${f.airline ? ' · ' + f.airline : ''}`, true],
+              [[f.aircraft_type, f.registration].filter(Boolean).join(' · ')],
               [f.phase ? `${f.phase}${f.airport ? ' · ' + f.airport : ''}` : ''],
               [`Quota ${num(f.geo_altitude, ' m')} · ${num(f.velocity, ' m/s')}`],
               [f.origin_country ?? ''],
