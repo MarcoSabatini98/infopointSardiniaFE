@@ -113,6 +113,7 @@
 .map-col {
   height: calc(100dvh - 190px);
   min-height: 460px;
+  min-width: 0;
   padding: 0;
   overflow: hidden;
   /* Contiene gli z-index interni di Leaflet (controlli fino a 1000): senza,
@@ -125,6 +126,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  min-width: 0;
   position: sticky;
   top: 72px;
   max-height: calc(100dvh - 90px);
