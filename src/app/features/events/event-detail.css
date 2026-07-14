@@ -25,7 +25,7 @@
   color: var(--ink-soft);
 }
 .dh h1 {
-  font-size: var(--text-2xl);
+  font-size: clamp(var(--text-xl), 5vw, var(--text-2xl));
 }
 .org {
   margin: 0.3rem 0 0;
