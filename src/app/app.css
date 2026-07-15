@@ -1,3 +1,19 @@
 main {
   min-height: calc(100dvh - 57px);
 }
+
+/* ponytail: footer statico appeso in fondo al contenuto (niente sticky/flex
+   sull'app-root per non toccare il fix della navbar sticky in styles.css). */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 1.1rem 1.25rem;
+  text-align: center;
+}
+.site-footer p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}
+.site-footer a {
+  font-weight: 600;
+}
