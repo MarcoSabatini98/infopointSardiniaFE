@@ -1,5 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs';
 import { SessionService } from '../../core/services/session.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -16,6 +18,17 @@ export class Header {
 
   // Menu sezioni a comparsa: solo su mobile (l'hamburger è nascosto su desktop).
   protected readonly menuOpen = signal(false);
+
+  constructor() {
+    // Chiude il menu mobile a ogni navigazione (click o tastiera sui link):
+    // sostituisce la delega (click) sul <nav>, che non è un elemento interattivo.
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => this.closeMenu());
+  }
 
   protected toggleMenu(): void {
     this.menuOpen.update((open) => !open);
