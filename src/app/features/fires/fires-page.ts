@@ -31,6 +31,17 @@ export class FiresPage {
     return SEVERITY_ORDER.filter((k) => s[k]).map((k) => ({ key: k, n: s[k] }));
   });
 
+  protected readonly windowDays = computed(() => this.data()?.window_days ?? null);
+
+  // Storico per giorno (barre): dal più vecchio al più recente, così la striscia
+  // "si allunga" verso oggi. pct = altezza barra relativa al giorno di picco.
+  protected readonly days = computed(() => {
+    const byDay = this.data()?.stats?.by_day ?? {};
+    const entries = Object.entries(byDay).sort(([a], [b]) => a.localeCompare(b));
+    const max = Math.max(1, ...entries.map(([, n]) => n));
+    return entries.map(([day, n]) => ({ day, n, pct: Math.round((n / max) * 100) }));
+  });
+
   constructor() {
     this.feeds.fires().subscribe({
       next: (d) => this.data.set(d),
@@ -62,6 +73,13 @@ export class FiresPage {
       hour: '2-digit',
       minute: '2-digit',
     });
+  }
+
+  // Giorno breve per lo storico (es. "lun 14").
+  fmtDay(day: string): string {
+    const d = new Date(`${day}T00:00:00`);
+    if (isNaN(d.getTime())) return day;
+    return d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' });
   }
 
   round(v: number | null | undefined): string {

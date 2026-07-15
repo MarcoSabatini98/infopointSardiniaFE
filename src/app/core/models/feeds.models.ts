@@ -83,6 +83,7 @@ export interface Fire {
 export interface FiresStats {
   by_province: Record<string, number>;
   by_severity: Record<string, number>;
+  by_day?: Record<string, number>; // giorno YYYY-MM-DD → n° focolai (storico)
   max_frp: number | null;
 }
 export interface FiresResponse {
@@ -90,6 +91,7 @@ export interface FiresResponse {
   source?: string;
   count: number;
   updated_at?: string | null;
+  window_days?: number; // ampiezza finestra storica in giorni
   stats?: FiresStats;
   fires: Fire[];
   error?: string;

@@ -3,7 +3,11 @@
     <div>
       <h1>🔥 Guardia-fuochi</h1>
       <p class="muted sub">
-        Incendi attivi rilevati da satellite nelle ultime ore.
+        @if (windowDays(); as w) {
+          Incendi rilevati da satellite negli ultimi {{ w }} giorni.
+        } @else {
+          Incendi rilevati da satellite.
+        }
         @if (data()?.source) { Fonte: <strong>{{ data()!.source }}</strong>. }
         @if (data()?.updated_at) { Ultimo rilevamento: {{ fmtWhen(data()!.updated_at!) }}. }
       </p>
@@ -17,7 +21,10 @@
       <span class="ok-ic">✅</span>
       <div>
         <strong>Nessun incendio attivo</strong>
-        <p class="muted">Nessun focolaio rilevato in Sardegna nelle ultime ore.</p>
+        <p class="muted">
+          Nessun focolaio rilevato in Sardegna
+          @if (windowDays(); as w) { negli ultimi {{ w }} giorni } @else { di recente }.
+        </p>
       </div>
     </div>
   } @else {
@@ -25,7 +32,7 @@
     <div class="kpis">
       <div class="kpi alarm">
         <span class="kn">{{ data()!.count }}</span>
-        <span class="kl">focolai attivi</span>
+        <span class="kl">focolai rilevati</span>
       </div>
       <div class="kpi">
         <span class="kn">{{ round(data()!.stats?.max_frp) }}</span>
@@ -37,6 +44,25 @@
         }
       </div>
     </div>
+
+    <!-- Storico per giorno -->
+    @if (days().length > 1) {
+      <div class="history card">
+        <div class="hist-head">
+          <strong>Andamento</strong>
+          <span class="muted">focolai rilevati per giorno</span>
+        </div>
+        <div class="days">
+          @for (d of days(); track d.day) {
+            <div class="day" [title]="d.n + ' focolai'">
+              <span class="day-n">{{ d.n }}</span>
+              <span class="day-track"><span class="day-bar" [style.height.%]="d.pct"></span></span>
+              <span class="day-l">{{ fmtDay(d.day) }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
 
     <!-- Filtro provincia -->
     <div class="filters">
