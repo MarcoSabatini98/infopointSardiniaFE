@@ -8,7 +8,7 @@
   </header>
 
   @if (loading()) {
-    <p class="muted">Caricamento prezzi…</p>
+    <p class="muted loading"><span class="spinner" aria-hidden="true"></span>Caricamento in corso…</p>
   } @else if (!data()?.available) {
     <p class="muted state">Sorgente prezzi non disponibile al momento.</p>
   } @else {

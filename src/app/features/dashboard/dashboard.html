@@ -28,7 +28,7 @@
     </div>
     <span class="layer-stat muted">
       @if (layerLoading()) {
-        Caricamento…
+        <span class="spinner" aria-hidden="true"></span>Caricamento in corso…
       } @else if (layerCount() !== null) {
         {{ layerCount() }} sulla mappa
       }

@@ -90,7 +90,7 @@
 
   <!-- Tabella eventi -->
   @if (loading()) {
-    <p class="muted">Caricamento…</p>
+    <p class="muted loading"><span class="spinner" aria-hidden="true"></span>Caricamento in corso…</p>
   } @else if (items().length === 0) {
     <p class="muted">Nessun evento. Creane uno con "Nuovo evento".</p>
   } @else {

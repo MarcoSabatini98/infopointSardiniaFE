@@ -15,7 +15,7 @@
   </header>
 
   @if (loading()) {
-    <p class="muted">Caricamento…</p>
+    <p class="muted loading"><span class="spinner" aria-hidden="true"></span>Caricamento in corso…</p>
   } @else if (!data()?.available || data()!.count === 0) {
     <div class="card calm">
       <span class="ok-ic">✅</span>

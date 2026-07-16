@@ -244,6 +244,30 @@ a:hover {
   }
 }
 
+/* ── Spinner / throbber (indicatore di caricamento) ───────── */
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--sea);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -0.15em;
+  margin-right: 0.45em;
+  flex: none;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Riga "testo + spinner" allineata */
+.loading {
+  display: inline-flex;
+  align-items: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::after,

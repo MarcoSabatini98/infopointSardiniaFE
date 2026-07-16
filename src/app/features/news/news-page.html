@@ -12,7 +12,7 @@
   </header>
 
   @if (loading()) {
-    <p class="muted load">Caricamento edizione…</p>
+    <p class="muted load loading"><span class="spinner" aria-hidden="true"></span>Caricamento edizione in corso…</p>
   } @else if (items().length === 0) {
     <p class="muted load">Nessuna notizia disponibile.</p>
   } @else {
