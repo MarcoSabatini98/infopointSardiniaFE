@@ -22,7 +22,7 @@ interface Row {
       </header>
 
       @if (loading()) {
-        <p class="muted">Caricamento…</p>
+        <p class="muted loading"><span class="spinner" aria-hidden="true"></span>Caricamento in corso…</p>
       } @else {
         <div class="list">
           @for (r of rows(); track r.key) {

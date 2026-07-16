@@ -34,7 +34,7 @@
   </header>
 
   @if (loading()) {
-    <p class="muted">Caricamento…</p>
+    <p class="muted loading"><span class="spinner" aria-hidden="true"></span>Caricamento in corso…</p>
   } @else if (!data()?.available || data()!.count === 0) {
     <p class="muted state">Nessuna nave rilevata al momento.</p>
   } @else {
