@@ -78,6 +78,16 @@
       }
     </div>
 
+    <!-- Spiegazione colonna (tap/click sull'intestazione) -->
+    @if (helpText(); as t) {
+      <div class="help-note card">
+        <span>{{ t }}</span>
+        <button type="button" class="help-close" (click)="closeHelp()" aria-label="Chiudi spiegazione">
+          ✕
+        </button>
+      </div>
+    }
+
     <!-- Lista focolai -->
     <div class="card tablewrap">
       <table class="tbl">
@@ -87,32 +97,48 @@
             <th>Provincia</th>
             <th>Posizione</th>
             <th>
-              <span
+              <button
+                type="button"
                 class="help"
-                title="FRP (Fire Radiative Power): potenza termica irradiata dal focolaio, in megawatt (MW). Più è alta, più l'incendio è intenso. Indicativo: &lt;10 basso, 10–50 medio, 50–100 alto, &gt;100 estremo."
-                >FRP</span
+                [class.on]="helpKey() === 'frp'"
+                [attr.aria-expanded]="helpKey() === 'frp'"
+                (click)="toggleHelp('frp')"
               >
+                FRP
+              </button>
             </th>
             <th>
-              <span
+              <button
+                type="button"
                 class="help"
-                title="Luminosità: temperatura di brillanza rilevata dal sensore satellitare, in Kelvin (K). Valori alti = superficie molto calda (fuoco vivo)."
-                >Luminosità</span
+                [class.on]="helpKey() === 'luminosita'"
+                [attr.aria-expanded]="helpKey() === 'luminosita'"
+                (click)="toggleHelp('luminosita')"
               >
+                Luminosità
+              </button>
             </th>
             <th>
-              <span
+              <button
+                type="button"
                 class="help"
-                title="Confidenza: quanto è affidabile il rilevamento del focolaio (basso / nominale / alto, oppure 0–100%)."
-                >Conf.</span
+                [class.on]="helpKey() === 'conf'"
+                [attr.aria-expanded]="helpKey() === 'conf'"
+                (click)="toggleHelp('conf')"
               >
+                Conf.
+              </button>
             </th>
             <th>
-              <span
+              <button
+                type="button"
                 class="help"
-                title="Satellite che ha rilevato il punto caldo (es. Suomi-NPP, NOAA-20). 'giorno'/'notte' = passaggio diurno o notturno."
-                >Sat.</span
+                [class.on]="helpKey() === 'sat'"
+                [attr.aria-expanded]="helpKey() === 'sat'"
+                (click)="toggleHelp('sat')"
               >
+                Sat.
+              </button>
             </th>
             <th>Rilevato</th>
           </tr>
