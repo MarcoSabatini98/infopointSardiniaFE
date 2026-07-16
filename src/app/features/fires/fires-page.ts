@@ -5,6 +5,16 @@ import { PROVINCES, ProvinceCode } from '../../core/models/province.models';
 
 const SEVERITY_ORDER = ['estrema', 'alta', 'media', 'bassa', 'n/d'];
 
+// Spiegazioni delle colonne tecniche. Mostrate a tap/click (i title nativi non
+// escono al tocco su mobile) in una nota fissa sopra la tabella.
+const COLUMN_HELP: Record<string, string> = {
+  frp: 'FRP (Fire Radiative Power): potenza termica irradiata dal focolaio, in megawatt (MW). Più è alta, più l’incendio è intenso. Indicativo: <10 basso, 10–50 medio, 50–100 alto, >100 estremo.',
+  luminosita:
+    'Luminosità: temperatura di brillanza rilevata dal sensore satellitare, in Kelvin (K). Valori alti = superficie molto calda (fuoco vivo).',
+  conf: 'Confidenza: quanto è affidabile il rilevamento del focolaio (basso / nominale / alto, oppure 0–100%).',
+  sat: 'Satellite che ha rilevato il punto caldo (es. Suomi-NPP, NOAA-20). “giorno”/“notte” = passaggio diurno o notturno.',
+};
+
 @Component({
   selector: 'app-fires-page',
   templateUrl: './fires-page.html',
@@ -32,6 +42,21 @@ export class FiresPage {
   });
 
   protected readonly windowDays = computed(() => this.data()?.window_days ?? null);
+
+  // Colonna con spiegazione aperta (tap/click sull'intestazione). null = chiusa.
+  protected readonly helpKey = signal<string | null>(null);
+  protected readonly helpText = computed(() => {
+    const k = this.helpKey();
+    return k ? COLUMN_HELP[k] : null;
+  });
+
+  toggleHelp(key: string): void {
+    this.helpKey.update((cur) => (cur === key ? null : key));
+  }
+
+  closeHelp(): void {
+    this.helpKey.set(null);
+  }
 
   // Storico per giorno (barre): dal più vecchio al più recente, così la striscia
   // "si allunga" verso oggi. pct = altezza barra relativa al giorno di picco.
